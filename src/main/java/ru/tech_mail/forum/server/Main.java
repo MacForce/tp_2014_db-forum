@@ -16,18 +16,18 @@ import java.util.Properties;
 
 public class Main {
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
-    private static final Properties properties = loadProperties();
+//    private static final Properties properties = loadProperties();
 
-    private static Properties loadProperties() {
-        Properties properties = new Properties();
-        try (Reader reader = new FileReader("resources/config.properties")) {
-            properties.load(reader);
-        } catch (IOException e) {
-            LOG.error("Can't read properties!", e);
-            return null;
-        }
-        return properties;
-    }
+//    private static Properties loadProperties() {
+//        Properties properties = new Properties();
+//        try (Reader reader = new FileReader("resources/config.properties")) {
+//            properties.load(reader);
+//        } catch (IOException e) {
+//            LOG.error("Can't read properties!", e);
+//            return null;
+//        }
+//        return properties;
+//    }
 
     public static void main(String[] args) throws Exception {
         ConnectionPool connPool = new ConnectionPool();
@@ -43,8 +43,8 @@ public class Main {
         Server server = new Server(threadPool);
 
         ServerConnector connector=new ServerConnector(server);
-        int port = Integer.valueOf(properties.getProperty("port"));
-        connector.setPort(port);
+//        int port = Integer.valueOf(properties.getProperty("port"));
+        connector.setPort(8080);
         server.addConnector(connector);
 
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
@@ -53,7 +53,7 @@ public class Main {
                 new UserDAOImpl(connPool))), "/db/api/*");
         server.setHandler(context);
 
-        LOG.info("Starting server at port: " + port);
+        LOG.info("Starting server at port: " + 8080);
         server.start();
         server.join();
 
