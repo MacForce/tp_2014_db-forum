@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+    <context:component-scan base-package="ru.tech_mail.forum"/>
+
+    <bean id="Service" class="ru.tech_mail.forum.DAO.SpringDAO.CommonDAO"></bean>
+
+    <bean id="User" class="ru.tech_mail.forum.DAO.SpringDAO.UserDAO"></bean>
+
+    <bean id="Post" class="ru.tech_mail.forum.DAO.SpringDAO.PostDAO"></bean>
+
+    <bean id="Forum" class="ru.tech_mail.forum.DAO.SpringDAO.ForumDAO"></bean>
+
+    <bean id="Thread" class="ru.tech_mail.forum.DAO.SpringDAO.ThreadDAO"></bean>
+
+    <bean id="mySQL_dataSource"
+          class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver" />
+        <property name="url" value="jdbc:mysql://127.0.0.1:3306/db-forum" />
+        <property name="username" value="root" />
+        <property name="password" value="" />
+    </bean>
+
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <constructor-arg ref="mySQL_dataSource" />
+    </bean>
+
+    <bean id="clear" class="java.lang.String">
+        <constructor-arg value="TRUNCATE TABLE ?"/>
+    </bean>
+
+    <bean id="common" class="java.util.HashMap">
+        <constructor-arg>
+            <map>
+                <entry key="clear" value="TRUNCATE TABLE ?" />
+            </map>
+        </constructor-arg>
+    </bean>
+
+    <bean id="userQueries" class="java.util.HashMap">
+        <constructor-arg>
+            <map>
+                <entry key="create" value="INSERT INTO user(username, about, isAnonymous, name, email) VALUES(?, ?, ?, ?, ?)" />
+                <entry key="createAnonym" value="INSERT INTO user(isAnonymous, email) VALUES(?, ?)" />
+                <entry key="details" value="SELECT * FROM user" />
+                <entry key="follow" value="" />
+                <entry key="listFollowers" value="" />
+                <entry key="listFollowing" value="" />
+                <entry key="listPosts" value="" />
+                <entry key="unfollow" value="" />
+                <entry key="updateProfile" value="UPDATE user SET about = ?, name = ? WHERE email = ?" />
+            </map>
+        </constructor-arg>
+    </bean>
+
+    <bean id="postQueries" class="java.util.HashMap">
+        <constructor-arg>
+            <map>
+                <entry key="create" value="" />
+                <entry key="details" value="" />
+                <entry key="list" value="" />
+                <entry key="remove" value="" />
+                <entry key="restore" value="" />
+                <entry key="update" value="" />
+                <entry key="vote" value="" />
+            </map>
+        </constructor-arg>
+    </bean>
+
+    <bean id="forumQueries" class="java.util.HashMap">
+        <constructor-arg>
+            <map>
+                <entry key="create" value="" />
+                <entry key="details" value="" />
+                <entry key="listPosts" value="" />
+                <entry key="listThreads" value="" />
+                <entry key="listUsers" value="" />
+            </map>
+        </constructor-arg>
+    </bean>
+
+    <bean id="threadQueries" class="java.util.HashMap">
+        <constructor-arg>
+            <map>
+                <entry key="close" value="" />
+                <entry key="create" value="" />
+                <entry key="details" value="" />
+                <entry key="list" value="" />
+                <entry key="listPosts" value="" />
+                <entry key="open" value="" />
+                <entry key="remove" value="" />
+                <entry key="restore" value="" />
+                <entry key="subscribe" value="" />
+                <entry key="unsubscribe" value="" />
+                <entry key="update" value="" />
+                <entry key="vote" value="" />
+            </map>
+        </constructor-arg>
+    </bean>
+
+</beans>
