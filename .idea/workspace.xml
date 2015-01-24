@@ -97,12 +97,24 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ConnectionPool.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="ConnectionPool.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/ru/tech_mail/forum/DAO/JdbcDAO/ConnectionPool.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.38310412" vertical-offset="0" max-vertical-offset="1005">
+            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1005">
               <caret line="20" column="40" selection-start-line="20" selection-start-column="40" selection-end-line="20" selection-end-column="40" />
               <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Servlet.java" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/main/java/ru/tech_mail/forum/server/Servlet.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.086444005" vertical-offset="1126" max-vertical-offset="2460">
+              <caret line="78" column="31" selection-start-line="78" selection-start-column="31" selection-end-line="78" selection-end-column="31" />
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -112,16 +124,6 @@
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0" vertical-offset="32" max-vertical-offset="600">
               <caret line="30" column="68" selection-start-line="30" selection-start-column="68" selection-end-line="30" selection-end-column="68" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="pom.xml" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/pom.xml">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="2" max-vertical-offset="2505">
-              <caret line="22" column="36" selection-start-line="22" selection-start-column="36" selection-end-line="22" selection-end-column="36" />
               <folding />
             </state>
           </provider>
@@ -210,7 +212,6 @@
         <option value="$PROJECT_DIR$/src/main/java/ru/tech_mail/forum/DAO/JdbcDAO/ClearDAO.java" />
         <option value="$PROJECT_DIR$/src/main/java/ru/tech_mail/forum/DAO/SpringDAO/CommonDAO.java" />
         <option value="$PROJECT_DIR$/src/main/java/ru/tech_mail/forum/DAO/JdbcDAO/ForumDAO.java" />
-        <option value="$PROJECT_DIR$/src/main/java/ru/tech_mail/forum/server/Servlet.java" />
         <option value="$PROJECT_DIR$/src/main/java/ru/tech_mail/forum/exceptions/WrongDataException.java" />
         <option value="$PROJECT_DIR$/resources/config.properties" />
         <option value="$PROJECT_DIR$/src/main/java/ru/tech_mail/forum/DAO/SpringDAO/ForumDAO.java" />
@@ -240,6 +241,7 @@
         <option value="$PROJECT_DIR$/src/main/java/ru/tech_mail/forum/DAO/JdbcDAO/ForumDAOImpl.java" />
         <option value="$PROJECT_DIR$/src/main/java/ru/tech_mail/forum/DAO/JdbcDAO/ClearDAOImpl.java" />
         <option value="$PROJECT_DIR$/src/main/java/ru/tech_mail/forum/DAO/JdbcDAO/ConnectionPool.java" />
+        <option value="$PROJECT_DIR$/src/main/java/ru/tech_mail/forum/server/Servlet.java" />
       </list>
     </option>
   </component>
@@ -1145,14 +1147,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/ru/tech_mail/forum/server/Servlet.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="931" max-vertical-offset="2265">
-          <caret line="111" column="0" selection-start-line="111" selection-start-column="0" selection-end-line="111" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/ru/tech_mail/forum/responses/Post.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="660" max-vertical-offset="1320">
@@ -1347,9 +1341,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/ru/tech_mail/forum/DAO/JdbcDAO/ConnectionPool.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.38310412" vertical-offset="0" max-vertical-offset="1005">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1005">
           <caret line="20" column="40" selection-start-line="20" selection-start-column="40" selection-end-line="20" selection-end-column="40" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/ru/tech_mail/forum/server/Servlet.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.086444005" vertical-offset="1126" max-vertical-offset="2460">
+          <caret line="78" column="31" selection-start-line="78" selection-start-column="31" selection-end-line="78" selection-end-column="31" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
