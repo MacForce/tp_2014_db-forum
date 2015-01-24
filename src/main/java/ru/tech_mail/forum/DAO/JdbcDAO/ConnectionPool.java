@@ -16,7 +16,7 @@ public class ConnectionPool {
     public ConnectionPool() {
         connectionPool = new BasicDataSource();
         connectionPool.setDriverClassName("com.mysql.jdbc.Driver");
-        connectionPool.setUrl("jdbc:mysql://127.0.0.1:3306/forum?useUnicode=true&characterEncoding=UTF-8");
+        connectionPool.setUrl("jdbc:mysql://127.0.0.1:3306/forum_db?useUnicode=true&characterEncoding=UTF-8");
         connectionPool.setUsername("root");
         connectionPool.setPassword("root");
         connectionPool.setInitialSize(15);

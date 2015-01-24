@@ -37,7 +37,7 @@ public class UserDAOImpl implements UserDAO {
             Connection connection = connectionPool.getConnection();
             try {
                 String value;
-                String query = String.format("INSERT INTO user(email, username, name, about, isAnonymous) VALUES(\"%s\", %s, %s, %s, %b)",
+                String query = String.format("INSERT INTO User(email, username, name, about, isAnonymous) VALUES(\"%s\", %s, %s, %s, %b)",
                         Common.escapeInjections((String) params.get("email")),
                         (value = Common.escapeInjections((String) params.get("username"))) == null ?
                                 null
@@ -100,7 +100,7 @@ public class UserDAOImpl implements UserDAO {
 
     public UserFull getUserDetails(Connection connection, String email) throws WrongDataException {
         UserFull user = TExecutor.execQuery(connection,
-                String.format("SELECT * FROM user WHERE email = \"%s\"", email),
+                String.format("SELECT * FROM User WHERE email = \"%s\"", email),
                 (resultSet) -> resultSet.next() ?
                     new UserFull(resultSet.getInt(1), resultSet.getString(2),
                                 resultSet.getString(3), resultSet.getString(4),
@@ -116,7 +116,7 @@ public class UserDAOImpl implements UserDAO {
         List<String> followersEmails;
         try {
             followersEmails = TExecutor.execQuery(connection,
-                    String.format("SELECT follower FROM friendship WHERE user = \"%s\"", email),
+                    String.format("SELECT follower FROM Follow WHERE followee = \"%s\"", email),
                     (resultSet) -> {
                         List<String> data = new ArrayList<>();
                         while (resultSet.next()) {
@@ -134,7 +134,7 @@ public class UserDAOImpl implements UserDAO {
         List<String> followersEmails;
         try {
             followersEmails = TExecutor.execQuery(connection,
-                    String.format("SELECT user FROM friendship WHERE follower = \"%s\"", email),
+                    String.format("SELECT followee FROM Follow WHERE follower = \"%s\"", email),
                     (resultSet) -> {
                         List<String> data = new ArrayList<>();
                         while (resultSet.next()) {
@@ -152,7 +152,7 @@ public class UserDAOImpl implements UserDAO {
         List<Integer> subscriptions;
         try {
             subscriptions = TExecutor.execQuery(connection,
-                    String.format("SELECT thread FROM subscribe WHERE user = \"%s\"", email),
+                    String.format("SELECT thread FROM Subscribe WHERE user = \"%s\"", email),
                     (resultSet) -> {
                         List<Integer> data = new ArrayList<>();
                         while (resultSet.next()) {
@@ -185,7 +185,7 @@ public class UserDAOImpl implements UserDAO {
         if (params.containsKey("follower") && params.containsKey("followee")) {
             Connection connection = connectionPool.getConnection();
             try {
-                TExecutor.execUpdate(connection, String.format("INSERT INTO friendship(user, follower) VALUES(\"%s\", \"%s\")",
+                TExecutor.execUpdate(connection, String.format("INSERT INTO Follow(followee, follower) VALUES(\"%s\", \"%s\")",
                         Common.escapeInjections((String)params.get("followee")),
                         Common.escapeInjections((String) params.get("follower"))));
                 UserFull user = getUserDetails(connection, Common.escapeInjections((String)params.get("followee")));
@@ -212,13 +212,13 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public void listFollowers(HttpServletRequest request, HttpServletResponse response) {
         sendUsersList(request, response, "SELECT us.id, us.email, us.username, us.name, us.about, us.isAnonymous " +
-                "FROM user us INNER JOIN friendship fr ON us.email = fr.follower WHERE fr.user = \"%s\"");
+                "FROM User us INNER JOIN Follow fr ON us.email = fr.follower WHERE fr.followee = \"%s\"");
     }
 
     @Override
     public void listFollowing(HttpServletRequest request, HttpServletResponse response) {
         sendUsersList(request, response, "SELECT us.id, us.email, us.username, us.name, us.about, us.isAnonymous " +
-                "FROM user us INNER JOIN friendship fr ON us.email = fr.user WHERE fr.follower = \"%s\"");
+                "FROM User us INNER JOIN Follow fr ON us.email = fr.followee WHERE fr.follower = \"%s\"");
     }
 
     private void sendUsersList(HttpServletRequest request, HttpServletResponse response, String selectQuery) {
@@ -305,7 +305,7 @@ public class UserDAOImpl implements UserDAO {
             Common.addNotValid(response);
             return;
         }
-        String query = String.format("SELECT * FROM post WHERE user = \"%s\"", userEmail);
+        String query = String.format("SELECT * FROM Post WHERE user = \"%s\"", userEmail);
         query = addOptionalPostsParams(request, response, query);
         if (query == null) {
             Common.addNotValid(response);
@@ -383,7 +383,7 @@ public class UserDAOImpl implements UserDAO {
         if (params.containsKey("follower") && params.containsKey("followee")) {
             Connection connection = connectionPool.getConnection();
             try {
-                TExecutor.execUpdate(connection, String.format("DELETE FROM friendship WHERE user = \"%s\" AND follower = \"%s\"",
+                TExecutor.execUpdate(connection, String.format("DELETE FROM Followee WHERE followee = \"%s\" AND follower = \"%s\"",
                         Common.escapeInjections((String)params.get("followee")),
                         Common.escapeInjections((String) params.get("follower"))));
                 UserFull user = getUserDetails(connection, Common.escapeInjections((String)params.get("followee")));
@@ -417,7 +417,7 @@ public class UserDAOImpl implements UserDAO {
         if (params.containsKey("about") && params.containsKey("name") && params.containsKey("user")) {
             Connection connection = connectionPool.getConnection();
             try {
-                String query = String.format("UPDATE user SET about = \"%s\", name = \"%s\" WHERE email = \"%s\"",
+                String query = String.format("UPDATE User SET about = \"%s\", name = \"%s\" WHERE email = \"%s\"",
                         Common.escapeInjections((String)params.get("about")),
                         Common.escapeInjections((String)params.get("name")),
                         Common.escapeInjections((String)params.get("user")));

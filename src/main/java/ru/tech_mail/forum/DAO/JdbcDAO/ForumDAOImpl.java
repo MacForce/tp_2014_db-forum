@@ -77,7 +77,7 @@ public class ForumDAOImpl implements ForumDAO {
         try {
             if (related != null) {
                 if (related.equals("user")) {
-                    query = String.format("SELECT * FROM forum f INNER JOIN user u ON f.user=u.email WHERE f.short_name=\"%s\"", shortName);
+                    query = String.format("SELECT * FROM Forum f INNER JOIN User u ON f.user=u.email WHERE f.short_name=\"%s\"", shortName);
                     Forum<UserFull> forum = TExecutor.execQuery(connection, query, (resultSet) -> resultSet.next() ?
                             new Forum<>(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3),
                                     new UserFull(resultSet.getInt(5), resultSet.getString(6),
@@ -94,7 +94,7 @@ public class ForumDAOImpl implements ForumDAO {
                     Common.addNotValid(response);
                 }
             } else {
-                query = String.format("SELECT * FROM forum WHERE short_name = \"%s\"", shortName);
+                query = String.format("SELECT * FROM Forum WHERE short_name = \"%s\"", shortName);
                 Forum<String> forum = TExecutor.execQuery(connection, query, (resultSet) -> resultSet.next() ?
                         new Forum<>(resultSet.getInt(1), resultSet.getString(2),
                                 resultSet.getString(3), resultSet.getString(4))
@@ -127,7 +127,7 @@ public class ForumDAOImpl implements ForumDAO {
             if (optionalParams != null) {
                 if (optionalParams.length == 1) {
                     if (optionalParams[0].equals("user")) {
-                        query = String.format("SELECT * FROM post p INNER JOIN user u ON p.user=u.email WHERE p.forum=\"%s\"", forum);
+                        query = String.format("SELECT * FROM Post p INNER JOIN User u ON p.user=u.email WHERE p.forum=\"%s\"", forum);
                         query = addOptionalParams(request, response, "p.date", query);
                         if (query == null) {
                             Common.addNotValid(response);
@@ -157,7 +157,7 @@ public class ForumDAOImpl implements ForumDAO {
                         return;
                     }
                     if (optionalParams[0].equals("forum")) {
-                        query = String.format("SELECT * FROM post p INNER JOIN forum f ON p.forum=f.short_name WHERE p.forum=\"%s\"", forum);
+                        query = String.format("SELECT * FROM Post p INNER JOIN Forum f ON p.forum=f.short_name WHERE p.forum=\"%s\"", forum);
                         query = addOptionalParams(request, response, "p.date", query);
                         if (query == null) {
                             Common.addNotValid(response);
@@ -187,7 +187,7 @@ public class ForumDAOImpl implements ForumDAO {
                         return;
                     }
                     if (optionalParams[0].equals("thread")) {
-                        query = String.format("SELECT * FROM post p INNER JOIN thread t ON p.thread=t.id WHERE p.forum=\"%s\"", forum);
+                        query = String.format("SELECT * FROM Post p INNER JOIN Thread t ON p.thread=t.id WHERE p.forum=\"%s\"", forum);
                         query = addOptionalParams(request, response, "p.date", query);
                         if (query == null) {
                             Common.addNotValid(response);
@@ -220,7 +220,7 @@ public class ForumDAOImpl implements ForumDAO {
                 List<String> relatedParams = new ArrayList<>(Arrays.asList(optionalParams));
                 if (optionalParams.length == 2) {
                     if (relatedParams.contains("user") && relatedParams.contains("forum")) {
-                        query = String.format("SELECT * FROM forum f INNER JOIN (post p INNER JOIN user u ON p.user=u.email) ON f.short_name=p.forum WHERE p.forum=\"%s\"", forum);
+                        query = String.format("SELECT * FROM Forum f INNER JOIN (Post p INNER JOIN User u ON p.user=u.email) ON f.short_name=p.forum WHERE p.forum=\"%s\"", forum);
                         query = addOptionalParams(request, response, "p.date", query);
                         if (query == null) {
                             Common.addNotValid(response);
@@ -251,7 +251,7 @@ public class ForumDAOImpl implements ForumDAO {
                         return;
                     }
                     if (relatedParams.contains("user") && relatedParams.contains("thread")) {
-                        query = String.format("SELECT * FROM thread t INNER JOIN (post p INNER JOIN user u ON p.user=u.email) ON t.id=p.thread WHERE p.forum=\"%s\"", forum);
+                        query = String.format("SELECT * FROM Thread t INNER JOIN (Post p INNER JOIN User u ON p.user=u.email) ON t.id=p.thread WHERE p.forum=\"%s\"", forum);
                         query = addOptionalParams(request, response, "p.date", query);
                         if (query == null) {
                             Common.addNotValid(response);
@@ -284,7 +284,7 @@ public class ForumDAOImpl implements ForumDAO {
                         return;
                     }
                     if (relatedParams.contains("forum") && relatedParams.contains("thread")) {
-                        query = String.format("SELECT * FROM forum f INNER JOIN (post p INNER JOIN thread t ON p.thread=t.id) ON f.short_name=p.forum WHERE p.forum=\"%s\"", forum);
+                        query = String.format("SELECT * FROM Forum f INNER JOIN (Post p INNER JOIN Thread t ON p.thread=t.id) ON f.short_name=p.forum WHERE p.forum=\"%s\"", forum);
                         query = addOptionalParams(request, response, "p.date", query);
                         if (query == null) {
                             Common.addNotValid(response);
@@ -317,8 +317,8 @@ public class ForumDAOImpl implements ForumDAO {
                 }
                 if (optionalParams.length == 3 && relatedParams.contains("user") &&
                         relatedParams.contains("forum") && relatedParams.contains("thread")) {
-                    query = String.format("SELECT * FROM forum f INNER JOIN ( thread t INNER JOIN " +
-                            "(post p INNER JOIN user u ON p.user=u.email) ON p.thread=t.id) ON p.forum=f.short_name WHERE p.forum=\"%s\"", forum);
+                    query = String.format("SELECT * FROM Forum f INNER JOIN ( Thread t INNER JOIN " +
+                            "(Post p INNER JOIN User u ON p.user=u.email) ON p.thread=t.id) ON p.forum=f.short_name WHERE p.forum=\"%s\"", forum);
                     query = addOptionalParams(request, response, "p.date", query);
                     if (query == null) {
                         Common.addNotValid(response);
@@ -353,7 +353,7 @@ public class ForumDAOImpl implements ForumDAO {
                 }
                 Common.addNotValid(response);
             } else {
-                query = String.format("SELECT * FROM post WHERE forum=\"%s\"", forum);
+                query = String.format("SELECT * FROM Post WHERE forum=\"%s\"", forum);
                 query = addOptionalParams(request, response, "date", query);
                 if (query == null) {
                     Common.addNotValid(response);
@@ -434,7 +434,7 @@ public class ForumDAOImpl implements ForumDAO {
             if (optionalParams != null && optionalParams.length > 0) {
                 if (optionalParams.length == 1) {
                     if (optionalParams[0].equals("user")) {
-                        query = String.format("SELECT * FROM thread t INNER JOIN user u ON t.user=u.email WHERE t.forum=\"%s\"", forum);
+                        query = String.format("SELECT * FROM Thread t INNER JOIN User u ON t.user=u.email WHERE t.forum=\"%s\"", forum);
                         query = addOptionalParams(request, response, "t.date", query);
                         if (query == null) {
                             Common.addNotValid(response);
@@ -460,7 +460,7 @@ public class ForumDAOImpl implements ForumDAO {
                         Common.addToResponse(response, new BaseResponse<>((byte) 0, threadList));
                     } else {
                         if (optionalParams[0].equals("forum")) {
-                            query = String.format("SELECT * FROM thread t INNER JOIN forum f ON t.forum=f.short_name WHERE t.forum=\"%s\"", forum);
+                            query = String.format("SELECT * FROM Thread t INNER JOIN Forum f ON t.forum=f.short_name WHERE t.forum=\"%s\"", forum);
                             query = addOptionalParams(request, response, "t.date", query);
                             if (query == null) {
                                 Common.addNotValid(response);
@@ -492,7 +492,7 @@ public class ForumDAOImpl implements ForumDAO {
                     if (optionalParams.length == 2 &&
                             ((optionalParams[0].equals("user") && optionalParams[1].equals("forum")) ||
                                     (optionalParams[1].equals("user") && optionalParams[0].equals("forum")))) {
-                        query = String.format("SELECT * FROM forum f INNER JOIN (user u INNER JOIN thread t ON t.user=u.email) ON t.forum=f.short_name WHERE t.forum=\"%s\"", forum);
+                        query = String.format("SELECT * FROM Forum f INNER JOIN (User u INNER JOIN Thread t ON t.user=u.email) ON t.forum=f.short_name WHERE t.forum=\"%s\"", forum);
                         query = addOptionalParams(request, response, "t.date", query);
                         if (query == null) {
                             Common.addNotValid(response);
@@ -526,7 +526,7 @@ public class ForumDAOImpl implements ForumDAO {
                     Common.addNotValid(response);
                 }
             } else {
-                query = String.format("SELECT * FROM thread WHERE forum=\"%s\"", forum);
+                query = String.format("SELECT * FROM Thread WHERE forum=\"%s\"", forum);
                 query = addOptionalParams(request, response, "date", query);
                 if (query == null) {
                     Common.addNotValid(response);
@@ -567,7 +567,7 @@ public class ForumDAOImpl implements ForumDAO {
             return;
         }
         String query = String.format("SELECT DISTINCT u.id, u.email, u.username, u.name, u.about, u.isAnonymous " +
-                "FROM post p INNER JOIN user u ON p.user=u.email WHERE p.forum=\"%s\"", forumShortName);
+                "FROM Post p INNER JOIN User u ON p.user=u.email WHERE p.forum=\"%s\"", forumShortName);
         query = addOptionalUsersParams(request, response, query);
         if (query == null) {
             Common.addNotValid(response);

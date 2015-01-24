@@ -458,10 +458,10 @@ public class PostDAOImpl implements PostDAO {
         if (params.containsKey("post")) {
             Connection connection = connectionPool.getConnection();
             try {
-                String query = String.format("UPDATE post SET isDeleted=false WHERE id=%d",
+                String query = String.format("UPDATE Post SET isDeleted=false WHERE id=%d",
                         (Integer) params.get("post"));
                 TExecutor.execUpdate(connection, query);
-                query = String.format("UPDATE thread t SET t.posts=t.posts+1 WHERE t.id=(SELECT p.thread FROM post p WHERE p.id=%d)",
+                query = String.format("UPDATE Thread t SET t.posts=t.posts+1 WHERE t.id=(SELECT p.thread FROM Post p WHERE p.id=%d)",
                         (Integer) params.get("post"));
                 TExecutor.execUpdate(connection, query);
                 Common.addStringToResponse(response,
@@ -491,11 +491,11 @@ public class PostDAOImpl implements PostDAO {
         if (params.containsKey("post") && params.containsKey("message")) {
             Connection connection = connectionPool.getConnection();
             try {
-                String query = String.format("UPDATE post SET message=\"%s\" WHERE id=%d",
+                String query = String.format("UPDATE Post SET message=\"%s\" WHERE id=%d",
                         Common.escapeInjections((String)params.get("message")),
                         (Integer)params.get("post"));
                 TExecutor.execUpdate(connection, query);
-                query = String.format("SELECT * FROM post WHERE id=%d",
+                query = String.format("SELECT * FROM Post WHERE id=%d",
                         (Integer) params.get("post"));
                 PostFull post = TExecutor.execQuery(connection, query, (resultSet) -> resultSet.next() ?
                         new PostFull(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3),
@@ -536,11 +536,11 @@ public class PostDAOImpl implements PostDAO {
                 Integer vote = (Integer)params.get("vote");
                 String query;
                 if (vote == 1) {
-                    query = String.format("UPDATE post SET likes=likes + 1, points=points + 1 WHERE id=%d",
+                    query = String.format("UPDATE Post SET likes=likes + 1, points=points + 1 WHERE id=%d",
                             (Integer)params.get("post"));
                 } else {
                     if (vote == -1) {
-                        query = String.format("UPDATE post SET dislikes=dislikes + 1, points=points - 1 WHERE id=%d",
+                        query = String.format("UPDATE Post SET dislikes=dislikes + 1, points=points - 1 WHERE id=%d",
                                 (Integer)params.get("post"));
                     } else {
                         Common.addNotCorrect(response);

@@ -23,12 +23,12 @@ public class ClearDAOImpl implements ClearDAO {
         Connection connection = connectionPool.getConnection();
         try {
             String query = "TRUNCATE TABLE %s";
-            TExecutor.execUpdate(connection, String.format(query, "forum"));
-            TExecutor.execUpdate(connection, String.format(query, "friendship"));
-            TExecutor.execUpdate(connection, String.format(query, "post"));
-            TExecutor.execUpdate(connection, String.format(query, "subscribe"));
-            TExecutor.execUpdate(connection, String.format(query, "thread"));
-            TExecutor.execUpdate(connection, String.format(query, "user"));
+            TExecutor.execUpdate(connection, String.format(query, "Forum"));
+            TExecutor.execUpdate(connection, String.format(query, "Follow"));
+            TExecutor.execUpdate(connection, String.format(query, "Post"));
+            TExecutor.execUpdate(connection, String.format(query, "Subscribe"));
+            TExecutor.execUpdate(connection, String.format(query, "Thread"));
+            TExecutor.execUpdate(connection, String.format(query, "User"));
         } catch (WrongDataException e) {
             LOG.error("Can't clear tables!");
             Common.addError(response);

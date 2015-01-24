@@ -36,7 +36,7 @@ public class ThreadDAOImpl implements ThreadDAO {
         if (params.containsKey("thread")) {
             Connection connection = connectionPool.getConnection();
             try {
-                String query = String.format("UPDATE thread SET isClosed=true WHERE id=%d",
+                String query = String.format("UPDATE Thread SET isClosed=true WHERE id=%d",
                         (Integer) params.get("thread"));
                 TExecutor.execUpdate(connection, query);
                 Common.addStringToResponse(response,
@@ -68,7 +68,7 @@ public class ThreadDAOImpl implements ThreadDAO {
                 params.containsKey("slug")){
             Connection connection = connectionPool.getConnection();
             try {
-                String query = String.format("INSERT INTO thread(forum, title, isClosed, user, date, message, slug, isDeleted) " +
+                String query = String.format("INSERT INTO Thread(forum, title, isClosed, user, date, message, slug, isDeleted) " +
                                     "VALUES(\"%s\", \"%s\", %b, \"%s\", \"%s\", \"%s\", \"%s\", %b)",
                         Common.escapeInjections((String)params.get("forum")),
                         Common.escapeInjections((String)params.get("title")),
@@ -120,7 +120,7 @@ public class ThreadDAOImpl implements ThreadDAO {
             if (optionalParams != null && optionalParams.length > 0) {
                 if (optionalParams.length == 1) {
                      if (optionalParams[0].equals("user")) {
-                         query = String.format("SELECT * FROM thread t INNER JOIN user u ON t.user=u.email WHERE t.id=%d", Integer.valueOf(threadId));
+                         query = String.format("SELECT * FROM Thread t INNER JOIN User u ON t.user=u.email WHERE t.id=%d", Integer.valueOf(threadId));
                          ThreadAdvanced<String, UserFull> threadAdv = TExecutor.execQuery(connection, query, (resultSet) -> {
                              if (resultSet.next()) {
                                  ThreadAdvanced<String, UserFull> data = new ThreadAdvanced<>(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3),
@@ -143,7 +143,7 @@ public class ThreadDAOImpl implements ThreadDAO {
                          }
                      } else {
                          if (optionalParams[0].equals("forum")) {
-                             query = String.format("SELECT * FROM thread t INNER JOIN forum f ON t.forum=f.short_name WHERE t.id=%d", Integer.valueOf(threadId));
+                             query = String.format("SELECT * FROM Thread t INNER JOIN Forum f ON t.forum=f.short_name WHERE t.id=%d", Integer.valueOf(threadId));
                              ThreadAdvanced<Forum, String> threadAdv = TExecutor.execQuery(connection, query, (resultSet) -> {
                                  if (resultSet.next()) {
                                      ThreadAdvanced<Forum, String> data = new ThreadAdvanced<>(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3),
@@ -170,7 +170,7 @@ public class ThreadDAOImpl implements ThreadDAO {
                     if (optionalParams.length == 2 &&
                             ((optionalParams[0].equals("user") && optionalParams[1].equals("forum")) ||
                                     (optionalParams[1].equals("user") && optionalParams[0].equals("forum")))) {
-                        query = String.format("SELECT * FROM forum f INNER JOIN (user u INNER JOIN thread t ON t.user=u.email) ON t.forum=f.short_name WHERE t.id=%d", Integer.valueOf(threadId));
+                        query = String.format("SELECT * FROM Forum f INNER JOIN (User u INNER JOIN Thread t ON t.user=u.email) ON t.forum=f.short_name WHERE t.id=%d", Integer.valueOf(threadId));
                         ThreadAdvanced<Forum, UserFull> threadAdv = TExecutor.execQuery(connection, query, (resultSet) -> {
                             if (resultSet.next()) {
                                 ThreadAdvanced<Forum, UserFull> data = new ThreadAdvanced<>(resultSet.getInt(11), resultSet.getString(12), resultSet.getString(13),
@@ -224,10 +224,10 @@ public class ThreadDAOImpl implements ThreadDAO {
         String forumShortName = Common.escapeInjections(request.getParameter("forum"));
         String query;
         if (userEmail != null) {
-            query = String.format("SELECT * FROM thread WHERE user = \"%s\"", userEmail);
+            query = String.format("SELECT * FROM Thread WHERE user = \"%s\"", userEmail);
         } else {
             if (forumShortName != null) {
-                query = String.format("SELECT * FROM thread WHERE forum = \"%s\"", forumShortName);
+                query = String.format("SELECT * FROM Thread WHERE forum = \"%s\"", forumShortName);
             } else {
                 Common.addNotValid(response);
                 return;
@@ -310,7 +310,7 @@ public class ThreadDAOImpl implements ThreadDAO {
                 Integer.valueOf(request.getParameter("thread"));
         String query;
         if (threadId != null) {
-            query = String.format("SELECT * FROM post WHERE thread = %d", threadId);
+            query = String.format("SELECT * FROM Post WHERE thread = %d", threadId);
         } else {
             Common.addNotValid(response);
             return;
@@ -356,7 +356,7 @@ public class ThreadDAOImpl implements ThreadDAO {
             Connection connection = connectionPool.getConnection();
             try {
                 TExecutor.execUpdate(connection,
-                        String.format("UPDATE thread SET isClosed = false WHERE id = %d ", (Integer)params.get("thread")));
+                        String.format("UPDATE Thread SET isClosed = false WHERE id = %d ", (Integer)params.get("thread")));
 
             } catch (WrongDataException e) {
                 Common.addNotCorrect(response);
@@ -385,10 +385,10 @@ public class ThreadDAOImpl implements ThreadDAO {
         if (params.containsKey("thread")) {
             Connection connection = connectionPool.getConnection();
             try {
-                String query = String.format("UPDATE thread SET isDeleted=true WHERE id=%d",
+                String query = String.format("UPDATE Thread SET isDeleted=true WHERE id=%d",
                         (Integer) params.get("thread"));
                 TExecutor.execUpdate(connection, query);
-                query = String.format("UPDATE post SET isDeleted=true WHERE thread=%d",
+                query = String.format("UPDATE Post SET isDeleted=true WHERE thread=%d",
                         (Integer) params.get("thread"));
                 TExecutor.execUpdate(connection, query);
                 Common.addStringToResponse(response,
@@ -418,10 +418,10 @@ public class ThreadDAOImpl implements ThreadDAO {
         if (params.containsKey("thread")) {
             Connection connection = connectionPool.getConnection();
             try {
-                String query = String.format("UPDATE thread SET isDeleted=false WHERE id=%d",
+                String query = String.format("UPDATE Thread SET isDeleted=false WHERE id=%d",
                         (Integer) params.get("thread"));
                 TExecutor.execUpdate(connection, query);
-                query = String.format("UPDATE post SET isDeleted=false WHERE thread=%d",
+                query = String.format("UPDATE Post SET isDeleted=false WHERE thread=%d",
                         (Integer) params.get("thread"));
                 TExecutor.execUpdate(connection, query);
                 Common.addStringToResponse(response,
@@ -451,7 +451,7 @@ public class ThreadDAOImpl implements ThreadDAO {
         if (params.containsKey("thread") && params.containsKey("user")) {
             Connection connection = connectionPool.getConnection();
             try {
-                String query = String.format("INSERT INTO subscribe(user, thread) VALUES(\"%s\", %d)",
+                String query = String.format("INSERT INTO Subscribe(user, thread) VALUES(\"%s\", %d)",
                         Common.escapeInjections((String)params.get("user")),
                         (Integer)params.get("thread"));
                 TExecutor.execUpdate(connection, query);
@@ -483,7 +483,7 @@ public class ThreadDAOImpl implements ThreadDAO {
         if (params.containsKey("thread") && params.containsKey("user")) {
             Connection connection = connectionPool.getConnection();
             try {
-                String query = String.format("DELETE FROM subscribe WHERE user=\"%s\" AND thread=%d",
+                String query = String.format("DELETE FROM Subscribe WHERE user=\"%s\" AND thread=%d",
                         Common.escapeInjections((String)params.get("user")),
                         (Integer)params.get("thread"));
                 TExecutor.execUpdate(connection, query);
@@ -515,12 +515,12 @@ public class ThreadDAOImpl implements ThreadDAO {
         if (params.containsKey("thread") && params.containsKey("message") && params.containsKey("slug")) {
             Connection connection = connectionPool.getConnection();
             try {
-                String query = String.format("UPDATE thread SET message=\"%s\", slug=\"%s\" WHERE id=%d",
+                String query = String.format("UPDATE Thread SET message=\"%s\", slug=\"%s\" WHERE id=%d",
                         Common.escapeInjections((String)params.get("message")),
                         Common.escapeInjections((String)params.get("slug")),
                         (Integer)params.get("thread"));
                 TExecutor.execUpdate(connection, query);
-                query = String.format("SELECT * FROM thread WHERE id=%d",
+                query = String.format("SELECT * FROM Thread WHERE id=%d",
                         (Integer) params.get("thread"));
                 ThreadFull thread = TExecutor.execQuery(connection, query, (resultSet) -> resultSet.next() ?
                                 new ThreadFull(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3),
@@ -561,11 +561,11 @@ public class ThreadDAOImpl implements ThreadDAO {
                 Integer vote = (Integer)params.get("vote");
                 String query;
                 if (vote == 1) {
-                    query = String.format("UPDATE thread SET likes=likes + 1, points=points + 1 WHERE id=%d",
+                    query = String.format("UPDATE Thread SET likes=likes + 1, points=points + 1 WHERE id=%d",
                             (Integer)params.get("thread"));
                 } else {
                     if (vote == -1) {
-                        query = String.format("UPDATE thread SET dislikes=dislikes + 1, points=points - 1 WHERE id=%d",
+                        query = String.format("UPDATE Thread SET dislikes=dislikes + 1, points=points - 1 WHERE id=%d",
                                 (Integer)params.get("thread"));
                     } else {
                         Common.addNotCorrect(response);
@@ -573,7 +573,7 @@ public class ThreadDAOImpl implements ThreadDAO {
                     }
                 }
                 TExecutor.execUpdate(connection, query);
-                query = String.format("SELECT * FROM thread WHERE id=%d",
+                query = String.format("SELECT * FROM Thread WHERE id=%d",
                         (Integer) params.get("thread"));
                 ThreadFull thread = TExecutor.execQuery(connection, query, (resultSet) -> resultSet.next() ?
                         new ThreadFull(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3),
