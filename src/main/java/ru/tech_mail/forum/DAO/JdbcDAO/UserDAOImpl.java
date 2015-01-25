@@ -48,7 +48,7 @@ public class UserDAOImpl implements UserDAO {
                         (value = Common.escapeInjections((String) params.get("about"))) == null ?
                                 null
                                 : "\"" + value +"\"",
-                            params.containsKey("isAnonymous") ? (Boolean)params.get("isAnonymous") : false);
+                        params.containsKey("isAnonymous") ? (Boolean)params.get("isAnonymous") : false);
                 Integer userId;
                 if ((userId = TExecutor.execUpdateGetId(connection, query)) != null) {
                     Common.addToResponse(response, new BaseResponse<>((byte) 0,
@@ -98,14 +98,10 @@ public class UserDAOImpl implements UserDAO {
         }
     }
 
-    public UserFull getUserDetails(Connection connection, String email) throws WrongDataException {
+    public static UserFull getUserDetails(Connection connection, String email) throws WrongDataException {
         UserFull user = TExecutor.execQuery(connection,
-                String.format("SELECT * FROM User WHERE email = \"%s\"", email),
-                (resultSet) -> resultSet.next() ?
-                    new UserFull(resultSet.getInt(1), resultSet.getString(2),
-                                resultSet.getString(3), resultSet.getString(4),
-                                resultSet.getString(5), resultSet.getBoolean(6))
-                    : null);
+                String.format("SELECT * FROM User u WHERE u.email = \"%s\"", email),
+                (resultSet) -> resultSet.next() ? new UserFull(resultSet) : null);
         if (user != null) {
             addAdvancedLists(connection, user);
         }
@@ -116,7 +112,7 @@ public class UserDAOImpl implements UserDAO {
         List<String> followersEmails;
         try {
             followersEmails = TExecutor.execQuery(connection,
-                    String.format("SELECT follower FROM Follow WHERE followee = \"%s\"", email),
+                    String.format("SELECT follower FROM Follow  WHERE followee = \"%s\"", email),
                     (resultSet) -> {
                         List<String> data = new ArrayList<>();
                         while (resultSet.next()) {
@@ -211,14 +207,12 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public void listFollowers(HttpServletRequest request, HttpServletResponse response) {
-        sendUsersList(request, response, "SELECT us.id, us.email, us.username, us.name, us.about, us.isAnonymous " +
-                "FROM User us INNER JOIN Follow fr ON us.email = fr.follower WHERE fr.followee = \"%s\"");
+        sendUsersList(request, response, "SELECT * FROM User u INNER JOIN Follow fo ON u.email = fo.follower WHERE fo.followee = \"%s\"");
     }
 
     @Override
     public void listFollowing(HttpServletRequest request, HttpServletResponse response) {
-        sendUsersList(request, response, "SELECT us.id, us.email, us.username, us.name, us.about, us.isAnonymous " +
-                "FROM User us INNER JOIN Follow fr ON us.email = fr.followee WHERE fr.follower = \"%s\"");
+        sendUsersList(request, response, "SELECT * FROM User u INNER JOIN Follow fo ON u.email = fo.followee WHERE fo.follower = \"%s\"");
     }
 
     private void sendUsersList(HttpServletRequest request, HttpServletResponse response, String selectQuery) {
@@ -239,9 +233,7 @@ public class UserDAOImpl implements UserDAO {
             userList = TExecutor.execQuery(connection, query, (resultSet) -> {
                 List<UserFull> data = new ArrayList<>();
                 while (resultSet.next()) {
-                    data.add(new UserFull(resultSet.getInt(1), resultSet.getString(2),
-                            resultSet.getString(3), resultSet.getString(4),
-                            resultSet.getString(5), resultSet.getBoolean(6)));
+                    data.add(new UserFull(resultSet));
                 }
                 return data;
             });
@@ -262,7 +254,7 @@ public class UserDAOImpl implements UserDAO {
         String sinceId = Common.escapeInjections(request.getParameter("since_id"));
         if (sinceId != null) {
             try {
-                query += String.format(" AND us.id >= %d", Integer.valueOf(sinceId));
+                query += String.format(" AND u.id >= %d", Integer.valueOf(sinceId));
             } catch (NumberFormatException e) {
                 LOG.error("Can't parse parameter \"since_id\" : " + sinceId, e);
                 Common.addNotValid(response);
@@ -273,17 +265,17 @@ public class UserDAOImpl implements UserDAO {
         if (sorting != null) {
             switch (sorting) {
                 case "asc" :
-                    query += " ORDER BY us.name ASC";
+                    query += " ORDER BY u.name ASC";
                     break;
                 case "desc" :
-                    query += " ORDER BY us.name DESC";
+                    query += " ORDER BY u.name DESC";
                     break;
                 default :
                     Common.addNotValid(response);
                     return null;
             }
         } else {
-            query += " ORDER BY us.name DESC";
+            query += " ORDER BY u.name DESC";
         }
         String limit = request.getParameter("limit");
         if (limit != null) {
@@ -305,7 +297,7 @@ public class UserDAOImpl implements UserDAO {
             Common.addNotValid(response);
             return;
         }
-        String query = String.format("SELECT * FROM Post WHERE user = \"%s\"", userEmail);
+        String query = String.format("SELECT * FROM Post p WHERE p.user=\"%s\"", userEmail);
         query = addOptionalPostsParams(request, response, query);
         if (query == null) {
             Common.addNotValid(response);
@@ -316,10 +308,7 @@ public class UserDAOImpl implements UserDAO {
             List<PostFull> postList = TExecutor.execQuery(connection, query, (resultSet) -> {
                 List<PostFull> data = new ArrayList<>();
                 while (resultSet.next()) {
-                    data.add(new PostFull(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3),
-                            resultSet.getString(4), resultSet.getInt(5), resultSet.getInt(6), resultSet.getInt(7),
-                            resultSet.getInt(8), resultSet.getInt(9), resultSet.getBoolean(10), resultSet.getBoolean(11),
-                            resultSet.getBoolean(12), resultSet.getBoolean(13), resultSet.getBoolean(14), resultSet.getString(15)));
+                    data.add(new PostFull<>(resultSet, resultSet.getString("p.forum"), userEmail, resultSet.getInt("p.thread")));
                 }
                 return data;
             });
@@ -337,7 +326,7 @@ public class UserDAOImpl implements UserDAO {
         if (sinceDate != null) {
             try {
                 new SimpleDateFormat("YYYY-MM-DD hh:mm:ss").parse(sinceDate); //only for check valid format
-                query += String.format(" AND date >= \"%s\"", sinceDate);
+                query += String.format(" AND p.date >= \"%s\"", sinceDate);
             } catch (ParseException e) {
                 LOG.error("Can't parse parameter \"since\" : " + sinceDate, e);
                 Common.addNotValid(response);
@@ -348,17 +337,17 @@ public class UserDAOImpl implements UserDAO {
         if (sorting != null) {
             switch (sorting) {
                 case "asc" :
-                    query += " ORDER BY date ASC";
+                    query += " ORDER BY p.date ASC";
                     break;
                 case "desc" :
-                    query += " ORDER BY date DESC";
+                    query += " ORDER BY p.date DESC";
                     break;
                 default :
                     Common.addNotValid(response);
                     return null;
             }
         } else {
-            query += " ORDER BY date DESC";
+            query += " ORDER BY p.date DESC";
         }
         String limit = request.getParameter("limit");
         if (limit != null) {
@@ -383,7 +372,7 @@ public class UserDAOImpl implements UserDAO {
         if (params.containsKey("follower") && params.containsKey("followee")) {
             Connection connection = connectionPool.getConnection();
             try {
-                TExecutor.execUpdate(connection, String.format("DELETE FROM Followee WHERE followee = \"%s\" AND follower = \"%s\"",
+                TExecutor.execUpdate(connection, String.format("DELETE FROM Follow WHERE followee = \"%s\" AND follower = \"%s\"",
                         Common.escapeInjections((String)params.get("followee")),
                         Common.escapeInjections((String) params.get("follower"))));
                 UserFull user = getUserDetails(connection, Common.escapeInjections((String)params.get("followee")));

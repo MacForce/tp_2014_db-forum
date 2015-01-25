@@ -3,6 +3,9 @@ package ru.tech_mail.forum.responses;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 public class User {
     private String about;
     private String email;
@@ -21,36 +24,33 @@ public class User {
         this.email = email;
     }
 
-    public int getId() {
-        return id;
+    public User(ResultSet resultSet) throws SQLException {
+        this.id = resultSet.getInt("u.id");
+        this.username = "null".equals(resultSet.getString("u.username")) ? null : resultSet.getString("u.username");
+        this.name = "null".equals(resultSet.getString("u.name")) ? null : resultSet.getString("u.name");
+        this.about = "null".equals(resultSet.getString("u.about")) ? null : resultSet.getString("u.about");
+        this.isAnonymous = resultSet.getBoolean("u.isAnonymous");
+        this.email = resultSet.getString("u.email");
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public User(String email) {
+        this.email = email;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public String getUsername() {
         return username;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getAbout() {
         return about;
-    }
-
-    public void setAbout(String about) {
-        this.about = about;
     }
 
 //    public boolean isAnonymous() {
@@ -65,7 +65,4 @@ public class User {
         return email;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
 }

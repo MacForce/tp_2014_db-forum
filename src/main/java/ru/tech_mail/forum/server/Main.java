@@ -11,40 +11,42 @@ import ru.tech_mail.forum.DAO.JdbcDAO.*;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Properties;
 
 public class Main {
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
-//    private static final Properties properties = loadProperties();
 
-//    private static Properties loadProperties() {
-//        Properties properties = new Properties();
-//        try (Reader reader = new FileReader("resources/config.properties")) {
-//            properties.load(reader);
-//        } catch (IOException e) {
-//            LOG.error("Can't read properties!", e);
-//            return null;
-//        }
-//        return properties;
-//    }
+    private Properties loadProperties() {
+        Properties properties = new Properties();
+        try (Reader reader = new InputStreamReader(this.getClass().getClassLoader()
+                .getResourceAsStream("config.properties"))) {
+            properties.load(reader);
+        } catch (IOException e) {
+            LOG.error("Can't read properties!", e);
+            System.exit(1);
+        }
+        return properties;
+    }
+
 
     public static void main(String[] args) throws Exception {
-        ConnectionPool connPool = new ConnectionPool();
+        Properties properties = new Main().loadProperties();
+        ConnectionPool connPool = new ConnectionPool(properties);
         if (!connPool.testDBConnect()) {
             LOG.error("Stopping server, because database connection isn't established!!!");
             return;
         }
-//        Common.updateIdsCounts(connPool.getConnection());
 
         QueuedThreadPool threadPool = new QueuedThreadPool();
-        threadPool.setMinThreads(10);
-        threadPool.setMaxThreads(1000);
+        threadPool.setMinThreads(Integer.valueOf(properties.getProperty("minServerThreads")));
+        threadPool.setMaxThreads(Integer.valueOf(properties.getProperty("maxServerThreads")));
         Server server = new Server(threadPool);
 
         ServerConnector connector=new ServerConnector(server);
-//        int port = Integer.valueOf(properties.getProperty("port"));
-        connector.setPort(8080);
+        int port = Integer.valueOf(properties.getProperty("port"));
+        connector.setPort(port);
         server.addConnector(connector);
 
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
@@ -53,7 +55,7 @@ public class Main {
                 new UserDAOImpl(connPool))), "/db/api/*");
         server.setHandler(context);
 
-        LOG.info("Starting server at port: " + 8080);
+        LOG.info("Starting server at port: " + port);
         server.start();
         server.join();
 

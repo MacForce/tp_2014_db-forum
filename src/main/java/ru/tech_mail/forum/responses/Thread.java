@@ -2,11 +2,13 @@ package ru.tech_mail.forum.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Date;
 
-public class Thread {
+public class Thread<forum, user> {
     private String date;
-    private String forum;
+    private forum forum;
     private int id;
     @JsonProperty(value = "isClosed")
     private boolean isClosed;
@@ -15,9 +17,9 @@ public class Thread {
     private String message;
     private String slug;
     private String title;
-    private String user;
+    private user user;
 
-    public Thread(int id, String title, String slug, String forum, String user,
+    public Thread(int id, String title, String slug, forum forum, user user,
                   boolean isDeleted, boolean isClosed, String date, String message) {
         this.date = date.lastIndexOf('.') != -1 ? date.substring(0,date.lastIndexOf('.')) : date;
         this.forum = forum;
@@ -30,12 +32,26 @@ public class Thread {
         this.user = user;
     }
 
-    public String getDate() {
-        return date;
+    public Thread(ResultSet resultSet, forum forum, user user) throws SQLException {
+        String threadDate = resultSet.getString("t.date");
+        this.date = threadDate.lastIndexOf('.') != -1 ?
+                threadDate.substring(0,threadDate.lastIndexOf('.')) : threadDate;
+        this.forum = forum;
+        this.user = user;
+        this.id = resultSet.getInt("t.id");
+        this.isClosed = resultSet.getBoolean("t.isClosed");
+        this.isDeleted = resultSet.getBoolean("t.isDeleted");
+        this.message = resultSet.getString("t.message");
+        this.slug = resultSet.getString("t.slug");
+        this.title = resultSet.getString("t.title");
     }
 
-    public String getForum() {
-        return forum;
+    public Thread(int id) {
+        this.id = id;
+    }
+
+    public String getDate() {
+        return date;
     }
 
     public int getId() {
@@ -62,7 +78,19 @@ public class Thread {
         return title;
     }
 
-    public String getUser() {
+    public forum getForum() {
+        return forum;
+    }
+
+    public user getUser() {
         return user;
+    }
+
+    public void setUser(user user) {
+        this.user = user;
+    }
+
+    public void setForum(forum forum) {
+        this.forum = forum;
     }
 }

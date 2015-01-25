@@ -17,10 +17,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-import java.sql.*;
 import java.util.HashMap;
-import java.util.Locale;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Common {
     private static final Logger LOG = LoggerFactory.getLogger(BaseResponse.class);
@@ -32,55 +29,6 @@ public class Common {
             .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
             .withCreatorVisibility(JsonAutoDetect.Visibility.NONE));
         JSONMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-    }
-    public static final AtomicInteger maxUserId = new AtomicInteger(0);
-    public static final AtomicInteger maxForumId = new AtomicInteger(0);
-    public static final AtomicInteger maxThreadId = new AtomicInteger(0);
-    public static final AtomicInteger maxPostId = new AtomicInteger(0);
-
-    public static void updateIdsCounts(Connection connection) {
-        try {
-            Integer maxId = TExecutor.execQuery(connection, "SELECT max(id) FROM user", (resultSet) -> {
-                Integer count = 0;
-                if (resultSet.next()) {
-                    count = resultSet.getInt(1);
-                }
-                return count;
-            });
-            maxUserId.set(maxId);
-            maxId = TExecutor.execQuery(connection, "SELECT max(id) FROM post", (resultSet) -> {
-                Integer count = 0;
-                if (resultSet.next()) {
-                    count = resultSet.getInt(1);
-                }
-                return count;
-            });
-            maxPostId.set(maxId);
-            maxId = TExecutor.execQuery(connection, "SELECT max(id) FROM forum", (resultSet) -> {
-                Integer count = 0;
-                if (resultSet.next()) {
-                    count = resultSet.getInt(1);
-                }
-                return count;
-            });
-            maxForumId.set(maxId);
-            maxId = TExecutor.execQuery(connection, "SELECT max(id) FROM thread", (resultSet) -> {
-                Integer count = 0;
-                if (resultSet.next()) {
-                    count = resultSet.getInt(1);
-                }
-                return count;
-            });
-            maxThreadId.set(maxId);
-        } catch (WrongDataException e) {
-            LOG.error("Can't update id's counts!", e);
-        } finally {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     public static String escapeInjections(String value) {
@@ -95,8 +43,6 @@ public class Common {
         try (PrintWriter out = new PrintWriter(new OutputStreamWriter(
                 response.getOutputStream(), StandardCharsets.UTF_8), true)) {
             response.setStatus(HttpServletResponse.SC_OK);
-//            response.setContentType("text/plain");
-//            response.setCharacterEncoding("utf-8");
             response.setHeader("Content-Type", "text/plain; charset=UTF-8");
             out.print(JSONMapper.writeValueAsString(message));
         } catch (IOException e) {
@@ -107,8 +53,7 @@ public class Common {
     public static void addStringToResponse(HttpServletResponse response, String message) {
         try (PrintWriter out = response.getWriter()) {
             response.setStatus(HttpServletResponse.SC_OK);
-            response.setContentType("text/plain");
-            response.setCharacterEncoding("utf-8");
+            response.setHeader("Content-Type", "text/plain; charset=UTF-8");
             out.print(message);
         } catch (IOException e) {
             LOG.error("Can't add string", e);
@@ -124,15 +69,6 @@ public class Common {
             LOG.error("Can't parse request: " + request.getRequestURI(), e);
         }
         return data;
-    }
-
-    public static String[] parseToArray(String data) {
-        if (data.length() > 4) {
-            data = data.replace("[", "").replace("]", "").replace("\'", "");
-            return data.split(",");
-        } else {
-            return null;
-        }
     }
 
     public static void addOK(HttpServletResponse response) {

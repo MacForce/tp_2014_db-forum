@@ -1,5 +1,7 @@
 package ru.tech_mail.forum.responses;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 public class UserFull extends User {
@@ -7,8 +9,12 @@ public class UserFull extends User {
     private List<String> following;
     private List<Integer> subscriptions;
 
-    public UserFull(int id, String email, String username, String name, String about, boolean isAnonymous) {
-        super(id, email, username, name, about, isAnonymous);
+    public UserFull(ResultSet resultSet) throws SQLException {
+        super(resultSet);
+    }
+
+    public UserFull(String email) {
+        super(email);
     }
 
     public List<String> getFollowers() {

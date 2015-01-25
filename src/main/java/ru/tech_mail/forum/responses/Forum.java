@@ -1,5 +1,8 @@
 package ru.tech_mail.forum.responses;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 public class Forum<user> {
     private int id;
     private String name;
@@ -11,6 +14,17 @@ public class Forum<user> {
         this.name = name;
         this.short_name = short_name;
         this.user = user;
+    }
+
+    public Forum(ResultSet resultSet, user user) throws SQLException {
+        this.id = resultSet.getInt("f.id");
+        this.name = resultSet.getString("f.name");
+        this.short_name = resultSet.getString("f.short_name");
+        this.user = user;
+    }
+
+    public Forum(String short_name) {
+        this.short_name = short_name;
     }
 
     public int getId() {

@@ -1,52 +1,40 @@
 package ru.tech_mail.forum.responses;
 
-import java.util.Date;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
-public class ThreadFull extends Thread {
+public class ThreadFull<forum, user> extends Thread {
     private int dislikes;
     private int likes;
     private int points;
     private int posts;
 
-    public ThreadFull(int id, String title, String slug, String forum, String user,
-                      int posts, int likes, int dislikes, int points, boolean isDeleted,
-                      boolean isClosed, String date, String message) {
-        super(id, title, slug, forum, user, isDeleted, isClosed, date, message);
-        this.posts = isDeleted ? 0 : posts;
-        this.likes = likes;
-        this.dislikes = dislikes;
-        this.points = points;
+    public ThreadFull(ResultSet resultSet,forum forum, user user) throws SQLException {
+        super(resultSet, forum, user);
+        this.posts = resultSet.getBoolean("t.isDeleted") ? 0 : resultSet.getInt("t.posts");
+        this.likes = resultSet.getInt("t.likes");
+        this.dislikes = resultSet.getInt("t.dislikes");
+        this.points = resultSet.getInt("t.points");
+    }
+
+    public ThreadFull(int id) {
+        super(id);
     }
 
     public int getDislikes() {
         return dislikes;
     }
 
-    public void setDislikes(int dislikes) {
-        this.dislikes = dislikes;
-    }
-
     public int getLikes() {
         return likes;
-    }
-
-    public void setLikes(int likes) {
-        this.likes = likes;
     }
 
     public int getPoints() {
         return points;
     }
 
-    public void setPoints(int points) {
-        this.points = points;
-    }
-
     public int getPosts() {
         return posts;
     }
 
-    public void setPosts(int posts) {
-        this.posts = posts;
-    }
 }

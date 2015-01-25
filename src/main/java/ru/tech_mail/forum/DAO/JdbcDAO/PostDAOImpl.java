@@ -35,7 +35,7 @@ public class PostDAOImpl implements PostDAO {
         if (params.containsKey("date") && params.containsKey("thread") && params.containsKey("message") && params.containsKey("user") && params.containsKey("forum")) {
             Connection connection = connectionPool.getConnection();
             try {
-                String query = String.format("INSERT INTO post(date, thread, message, user, forum, " +
+                String query = String.format("INSERT INTO Post(date, thread, message, user, forum, " +
                                 "parent, isApproved, isHighlighted, isEdited, isSpam, isDeleted) " +
                                 "VALUES(\"%s\", %d, \"%s\", \"%s\", \"%s\", %d, %b, %b, %b, %b, %b)",
                         Common.escapeInjections((String) params.get("date")),
@@ -51,8 +51,15 @@ public class PostDAOImpl implements PostDAO {
                         params.containsKey("isDeleted") ? (Boolean)params.get("isDeleted") : false);
                 Integer postId;
                 if ((postId = TExecutor.execUpdateGetId(connection, query)) != null) {
+//                    if (!params.containsKey("isDeleted")) {
+//                        TExecutor.execUpdate(connection, String.format("UPDATE Thread SET posts=posts+1 WHERE id=%d", (Integer) params.get("thread")));
+//                    } else {
+//                        if (!(Boolean)params.get("isDeleted")) {
+//                            TExecutor.execUpdate(connection, String.format("UPDATE Thread SET posts=posts+1 WHERE id=%d", (Integer) params.get("thread")));
+//                        }
+//                    }
                     Common.addToResponse(response, new BaseResponse<>((byte) 0,
-                            new Post(postId, (String)params.get("message"), (String)params.get("forum"), (String)params.get("user"),
+                            new Post<>(postId, (String)params.get("message"), (String)params.get("forum"), (String)params.get("user"),
                                     params.containsKey("parent") ? (Integer)params.get("parent") : null,
                                     (Integer)params.get("thread"),
                                     params.containsKey("isApproved") ? (Boolean)params.get("isApproved") : false,
@@ -61,11 +68,6 @@ public class PostDAOImpl implements PostDAO {
                                     params.containsKey("isSpam") ? (Boolean)params.get("isSpam") : false,
                                     params.containsKey("isDeleted") ? (Boolean)params.get("isDeleted") : false,
                                     (String)params.get("date"))));
-                    if (!params.containsKey("isDeleted") ||
-                            (params.containsKey("isDeleted") && !(Boolean)params.get("isDeleted"))) {
-                        TExecutor.execUpdate(connection, String.format("UPDATE thread SET posts=posts+1 WHERE id=%d",
-                                (Integer)params.get("thread")));
-                    }
                 }  else {
                     Common.addNotCorrect(response);
                 }
@@ -94,32 +96,22 @@ public class PostDAOImpl implements PostDAO {
             return;
         }
         Connection connection = connectionPool.getConnection();
-        String query;
+        String query = String.format("SELECT * FROM Post p WHERE p.id=%d", postId);
         String[] optionalParams = request.getParameterValues("related");
         try {
             if (optionalParams != null) {
                 if (optionalParams.length == 1) {
                     if (optionalParams[0].equals("user")) {
-                        query = String.format("SELECT * FROM post p INNER JOIN user u ON p.user=u.email WHERE p.id=%d", postId);
-                        PostAdvanced<String, Integer, UserFull> postAdv = TExecutor.execQuery(connection, query, (resultSet) -> {
+                        PostFull<String, Integer, UserFull> postAdv = TExecutor.execQuery(connection, query, (resultSet) -> {
                             if (resultSet.next()) {
-                                PostAdvanced<String, Integer, UserFull> data = new PostAdvanced<>(resultSet.getInt(1),
-                                        resultSet.getString(2), resultSet.getInt(5), resultSet.getInt(7),
-                                        resultSet.getInt(8), resultSet.getInt(9), resultSet.getBoolean(10),
-                                        resultSet.getBoolean(11), resultSet.getBoolean(12), resultSet.getBoolean(13),
-                                        resultSet.getBoolean(14), resultSet.getString(15));
-                                data.setForum(resultSet.getString(3));
-                                data.setThread(resultSet.getInt(6));
-                                data.setUser(new UserFull(resultSet.getInt(16), resultSet.getString(17),
-                                        resultSet.getString(18), resultSet.getString(19),
-                                        resultSet.getString(20), resultSet.getBoolean(21)));
-                                return data;
+                                return new PostFull<>(resultSet, resultSet.getString("p.forum"),
+                                        new UserFull(resultSet.getString("p.user")), resultSet.getInt("p.thread"));
                             } else {
                                 return null;
                             }
                         });
                         if (postAdv != null) {
-                            UserDAOImpl.addAdvancedLists(connection, postAdv.getUser());
+                            postAdv.setUser(UserDAOImpl.getUserDetails(connection, ((UserFull) postAdv.getUser()).getEmail()));
                             Common.addToResponse(response, new BaseResponse<>((byte) 0, postAdv));
                         } else {
                             Common.addNotFound(response);
@@ -127,24 +119,16 @@ public class PostDAOImpl implements PostDAO {
                         return;
                     }
                     if (optionalParams[0].equals("forum")) {
-                        query = String.format("SELECT * FROM post p INNER JOIN forum f ON p.forum=f.short_name WHERE p.id=%d", postId);
-                        PostAdvanced<Forum<String>, Integer, String> postAdv = TExecutor.execQuery(connection, query, (resultSet) -> {
+                        PostFull<Forum<String>, Integer, String> postAdv = TExecutor.execQuery(connection, query, (resultSet) -> {
                             if (resultSet.next()) {
-                                PostAdvanced<Forum<String>, Integer, String> data = new PostAdvanced<>(resultSet.getInt(1),
-                                        resultSet.getString(2), resultSet.getInt(5), resultSet.getInt(7),
-                                        resultSet.getInt(8), resultSet.getInt(9), resultSet.getBoolean(10),
-                                        resultSet.getBoolean(11), resultSet.getBoolean(12), resultSet.getBoolean(13),
-                                        resultSet.getBoolean(14), resultSet.getString(15));
-                                data.setForum(new Forum<>(resultSet.getInt(16), resultSet.getString(17),
-                                        resultSet.getString(18), resultSet.getString(19)));
-                                data.setThread(resultSet.getInt(6));
-                                data.setUser(resultSet.getString(4));
-                                return data;
+                                return new PostFull<>(resultSet, new Forum<>(resultSet.getString("p.forum")),
+                                        resultSet.getString("p.user"), resultSet.getInt("p.thread"));
                             } else {
                                 return null;
                             }
                         });
                         if (postAdv != null) {
+                            postAdv.setForum(ForumDAOImpl.getForumDetails(connection, ((Forum) postAdv.getForum()).getShort_name()));
                             Common.addToResponse(response, new BaseResponse<>((byte) 0, postAdv));
                         } else {
                             Common.addNotFound(response);
@@ -152,26 +136,16 @@ public class PostDAOImpl implements PostDAO {
                         return;
                     }
                     if (optionalParams[0].equals("thread")) {
-                        query = String.format("SELECT * FROM post p INNER JOIN thread t ON p.thread=t.id WHERE p.id=%d", postId);
-                        PostAdvanced<String, ThreadFull, String> postAdv = TExecutor.execQuery(connection, query, (resultSet) -> {
+                        PostFull<String, ThreadFull<String, String>, String> postAdv = TExecutor.execQuery(connection, query, (resultSet) -> {
                             if (resultSet.next()) {
-                                PostAdvanced<String, ThreadFull, String> data = new PostAdvanced<>(resultSet.getInt(1),
-                                        resultSet.getString(2), resultSet.getInt(5), resultSet.getInt(7),
-                                        resultSet.getInt(8), resultSet.getInt(9), resultSet.getBoolean(10),
-                                        resultSet.getBoolean(11), resultSet.getBoolean(12), resultSet.getBoolean(13),
-                                        resultSet.getBoolean(14), resultSet.getString(15));
-                                data.setForum(resultSet.getString(3));
-                                data.setThread(new ThreadFull(resultSet.getInt(16), resultSet.getString(17), resultSet.getString(18),
-                                        resultSet.getString(19), resultSet.getString(20), resultSet.getInt(21), resultSet.getInt(22),
-                                        resultSet.getInt(23), resultSet.getInt(24), resultSet.getBoolean(25), resultSet.getBoolean(26),
-                                        resultSet.getString(27), resultSet.getString(28)));
-                                data.setUser(resultSet.getString(4));
-                                return data;
+                                return new PostFull<>(resultSet, resultSet.getString("p.forum"),
+                                        resultSet.getString("p.user"), new ThreadFull<>(resultSet.getInt("p.thread")));
                             } else {
                                 return null;
                             }
                         });
                         if (postAdv != null) {
+                            postAdv.setThread(ThreadDAOImpl.getThreadDetails(connection, ((ThreadFull) postAdv.getThread()).getId()));
                             Common.addToResponse(response, new BaseResponse<>((byte) 0, postAdv));
                         } else {
                             Common.addNotFound(response);
@@ -184,27 +158,17 @@ public class PostDAOImpl implements PostDAO {
                 List<String> relatedParams = new ArrayList<>(Arrays.asList(optionalParams));
                 if (optionalParams.length == 2) {
                     if (relatedParams.contains("user") && relatedParams.contains("forum")) {
-                        query = String.format("SELECT * FROM forum f INNER JOIN (post p INNER JOIN user u ON p.user=u.email) ON f.short_name=p.forum WHERE p.id=%d", postId);
-                        PostAdvanced<Forum<String>, Integer, UserFull> postAdv = TExecutor.execQuery(connection, query, (resultSet) -> {
+                        PostFull<Forum<String>, Integer, UserFull> postAdv = TExecutor.execQuery(connection, query, (resultSet) -> {
                             if (resultSet.next()) {
-                                PostAdvanced<Forum<String>, Integer, UserFull> data = new PostAdvanced<>(resultSet.getInt(5),
-                                        resultSet.getString(6), resultSet.getInt(9), resultSet.getInt(11),
-                                        resultSet.getInt(12), resultSet.getInt(13), resultSet.getBoolean(14),
-                                        resultSet.getBoolean(15), resultSet.getBoolean(16), resultSet.getBoolean(17),
-                                        resultSet.getBoolean(18), resultSet.getString(19));
-                                data.setForum(new Forum<>(resultSet.getInt(1), resultSet.getString(2),
-                                        resultSet.getString(3), resultSet.getString(4)));
-                                data.setThread(resultSet.getInt(7));
-                                data.setUser(new UserFull(resultSet.getInt(20), resultSet.getString(21),
-                                        resultSet.getString(22), resultSet.getString(23),
-                                        resultSet.getString(24), resultSet.getBoolean(25)));
-                                return data;
+                                return new PostFull<>(resultSet, new Forum<>(resultSet.getString("p.forum")),
+                                        new UserFull(resultSet.getString("p.user")), resultSet.getInt("p.thread"));
                             } else {
                                 return null;
                             }
                         });
                         if (postAdv != null) {
-                            UserDAOImpl.addAdvancedLists(connection, postAdv.getUser());
+                            postAdv.setForum(ForumDAOImpl.getForumDetails(connection, ((Forum) postAdv.getForum()).getShort_name()));
+                            postAdv.setUser(UserDAOImpl.getUserDetails(connection, ((UserFull) postAdv.getUser()).getEmail()));
                             Common.addToResponse(response, new BaseResponse<>((byte) 0, postAdv));
                         } else {
                             Common.addNotFound(response);
@@ -212,29 +176,17 @@ public class PostDAOImpl implements PostDAO {
                         return;
                     }
                     if (relatedParams.contains("user") && relatedParams.contains("thread")) {
-                        query = String.format("SELECT * FROM thread t INNER JOIN (post p INNER JOIN user u ON p.user=u.email) ON t.id=p.thread WHERE p.id=%d", postId);
-                        PostAdvanced<String, ThreadFull, UserFull> postAdv = TExecutor.execQuery(connection, query, (resultSet) -> {
+                        PostFull<String, ThreadFull, UserFull> postAdv = TExecutor.execQuery(connection, query, (resultSet) -> {
                             if (resultSet.next()) {
-                                PostAdvanced<String, ThreadFull, UserFull> data = new PostAdvanced<>(resultSet.getInt(14),
-                                        resultSet.getString(15), resultSet.getInt(18), resultSet.getInt(20),
-                                        resultSet.getInt(21), resultSet.getInt(22), resultSet.getBoolean(23),
-                                        resultSet.getBoolean(24), resultSet.getBoolean(25), resultSet.getBoolean(26),
-                                        resultSet.getBoolean(27), resultSet.getString(28));
-                                data.setForum(resultSet.getString(16));
-                                data.setThread(new ThreadFull(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3),
-                                        resultSet.getString(4), resultSet.getString(5), resultSet.getInt(6), resultSet.getInt(7),
-                                        resultSet.getInt(8), resultSet.getInt(9), resultSet.getBoolean(10), resultSet.getBoolean(11),
-                                        resultSet.getString(12), resultSet.getString(13)));
-                                data.setUser(new UserFull(resultSet.getInt(29), resultSet.getString(30),
-                                        resultSet.getString(31), resultSet.getString(32),
-                                        resultSet.getString(33), resultSet.getBoolean(34)));
-                                return data;
+                                return new PostFull<>(resultSet, resultSet.getString("p.forum"),
+                                        new UserFull(resultSet.getString("p.user")), new ThreadFull<>(resultSet.getInt("p.thread")));
                             } else {
                                 return null;
                             }
                         });
                         if (postAdv != null) {
-                            UserDAOImpl.addAdvancedLists(connection, postAdv.getUser());
+                            postAdv.setUser(UserDAOImpl.getUserDetails(connection, ((UserFull) postAdv.getUser()).getEmail()));
+                            postAdv.setThread(ThreadDAOImpl.getThreadDetails(connection, ((ThreadFull) postAdv.getThread()).getId()));
                             Common.addToResponse(response, new BaseResponse<>((byte) 0, postAdv));
                         } else {
                             Common.addNotFound(response);
@@ -242,27 +194,17 @@ public class PostDAOImpl implements PostDAO {
                         return;
                     }
                     if (relatedParams.contains("forum") && relatedParams.contains("thread")) {
-                        query = String.format("SELECT * FROM forum f INNER JOIN (post p INNER JOIN thread t ON p.thread=t.id) ON f.short_name=p.forum WHERE p.id=%d", postId);
-                        PostAdvanced<Forum<String>, ThreadFull, String> postAdv = TExecutor.execQuery(connection, query, (resultSet) -> {
+                        PostFull<Forum<String>, ThreadFull, String> postAdv = TExecutor.execQuery(connection, query, (resultSet) -> {
                             if (resultSet.next()) {
-                                PostAdvanced<Forum<String>, ThreadFull, String> data = new PostAdvanced<>(resultSet.getInt(5),
-                                        resultSet.getString(6), resultSet.getInt(9), resultSet.getInt(11),
-                                        resultSet.getInt(12), resultSet.getInt(13), resultSet.getBoolean(14),
-                                        resultSet.getBoolean(15), resultSet.getBoolean(16), resultSet.getBoolean(17),
-                                        resultSet.getBoolean(18), resultSet.getString(19));
-                                data.setForum(new Forum<>(resultSet.getInt(1), resultSet.getString(2),
-                                        resultSet.getString(3), resultSet.getString(4)));
-                                data.setThread(new ThreadFull(resultSet.getInt(20), resultSet.getString(21), resultSet.getString(22),
-                                        resultSet.getString(23), resultSet.getString(24), resultSet.getInt(25), resultSet.getInt(26),
-                                        resultSet.getInt(27), resultSet.getInt(28), resultSet.getBoolean(29), resultSet.getBoolean(30),
-                                        resultSet.getString(31), resultSet.getString(32)));
-                                data.setUser(resultSet.getString(8));
-                                return data;
+                                return new PostFull<>(resultSet, new Forum<>(resultSet.getString("p.forum")),
+                                        resultSet.getString("p.user"), new ThreadFull<>(resultSet.getInt("p.thread")));
                             } else {
                                 return null;
                             }
                         });
                         if (postAdv != null) {
+                            postAdv.setForum(ForumDAOImpl.getForumDetails(connection, ((Forum) postAdv.getForum()).getShort_name()));
+                            postAdv.setThread(ThreadDAOImpl.getThreadDetails(connection, ((ThreadFull) postAdv.getThread()).getId()));
                             Common.addToResponse(response, new BaseResponse<>((byte) 0, postAdv));
                         } else {
                             Common.addNotFound(response);
@@ -274,31 +216,18 @@ public class PostDAOImpl implements PostDAO {
                 }
                 if (optionalParams.length == 3 && relatedParams.contains("user") &&
                         relatedParams.contains("forum") && relatedParams.contains("thread")) {
-                    query = String.format("SELECT * FROM forum f INNER JOIN ( thread t INNER JOIN " +
-                            "(post p INNER JOIN user u ON p.user=u.email) ON p.thread=t.id) ON p.forum=f.short_name WHERE p.id=%d", postId);
-                    PostAdvanced<Forum<String>, ThreadFull, UserFull> postAdv = TExecutor.execQuery(connection, query, (resultSet) -> {
+                    PostFull<Forum<String>, ThreadFull, UserFull> postAdv = TExecutor.execQuery(connection, query, (resultSet) -> {
                         if (resultSet.next()) {
-                            PostAdvanced<Forum<String>, ThreadFull, UserFull> data = new PostAdvanced<>(resultSet.getInt(18),
-                                    resultSet.getString(19), resultSet.getInt(22), resultSet.getInt(24),
-                                    resultSet.getInt(25), resultSet.getInt(26), resultSet.getBoolean(27),
-                                    resultSet.getBoolean(28), resultSet.getBoolean(29), resultSet.getBoolean(30),
-                                    resultSet.getBoolean(31), resultSet.getString(32));
-                            data.setForum(new Forum<>(resultSet.getInt(1), resultSet.getString(2),
-                                    resultSet.getString(3), resultSet.getString(4)));
-                            data.setThread(new ThreadFull(resultSet.getInt(5), resultSet.getString(6), resultSet.getString(7),
-                                    resultSet.getString(8), resultSet.getString(9), resultSet.getInt(10), resultSet.getInt(11),
-                                    resultSet.getInt(12), resultSet.getInt(13), resultSet.getBoolean(14), resultSet.getBoolean(15),
-                                    resultSet.getString(16), resultSet.getString(17)));
-                            data.setUser(new UserFull(resultSet.getInt(33), resultSet.getString(34),
-                                    resultSet.getString(35), resultSet.getString(36),
-                                    resultSet.getString(37), resultSet.getBoolean(38)));
-                            return data;
+                            return new PostFull<>(resultSet, new Forum<>(resultSet.getString("p.forum")),
+                                    new UserFull(resultSet.getString("p.user")), new ThreadFull<>(resultSet.getInt("p.thread")));
                         } else {
                             return null;
                         }
                     });
                     if (postAdv != null) {
-                        UserDAOImpl.addAdvancedLists(connection, postAdv.getUser());
+                        postAdv.setForum(ForumDAOImpl.getForumDetails(connection, ((Forum) postAdv.getForum()).getShort_name()));
+                        postAdv.setThread(ThreadDAOImpl.getThreadDetails(connection, ((ThreadFull) postAdv.getThread()).getId()));
+                        postAdv.setUser(UserDAOImpl.getUserDetails(connection, ((UserFull) postAdv.getUser()).getEmail()));
                         Common.addToResponse(response, new BaseResponse<>((byte) 0, postAdv));
                     } else {
                         Common.addNotFound(response);
@@ -307,13 +236,9 @@ public class PostDAOImpl implements PostDAO {
                 }
                 Common.addNotValid(response);
             } else {
-                query = String.format("SELECT * FROM post WHERE id=%d", postId);
-                PostFull post = TExecutor.execQuery(connection, query, (resultSet) -> resultSet.next() ?
-                    new PostFull(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3),
-                            resultSet.getString(4), resultSet.getInt(5), resultSet.getInt(6), resultSet.getInt(7),
-                            resultSet.getInt(8), resultSet.getInt(9), resultSet.getBoolean(10), resultSet.getBoolean(11),
-                            resultSet.getBoolean(12), resultSet.getBoolean(13), resultSet.getBoolean(14), resultSet.getString(15))
-                    : null);
+                PostFull<String, Integer, String> post = TExecutor.execQuery(connection, query,
+                        (resultSet) -> resultSet.next() ? new PostFull<>(resultSet, resultSet.getString("p.forum"),
+                                resultSet.getString("p.user"), resultSet.getInt("p.thread")) : null);
                 if (post != null) {
                     Common.addToResponse(response, new BaseResponse<>((byte) 0, post));
                 } else {
@@ -335,10 +260,10 @@ public class PostDAOImpl implements PostDAO {
                 Integer.valueOf(request.getParameter("thread"));
         String query;
         if (forumShortName != null) {
-            query = String.format("SELECT * FROM post WHERE forum=\"%s\"", forumShortName);
+            query = String.format("SELECT * FROM Post p WHERE p.forum=\"%s\"", forumShortName);
         } else {
             if (threadId != null) {
-                query = String.format("SELECT * FROM post WHERE thread=%d", threadId);
+                query = String.format("SELECT * FROM Post p WHERE p.thread=%d", threadId);
             } else {
                 Common.addNotValid(response);
                 return;
@@ -354,18 +279,11 @@ public class PostDAOImpl implements PostDAO {
             List<PostFull> postList = TExecutor.execQuery(connection, query, (resultSet) -> {
                 List<PostFull> data = new ArrayList<>();
                 while (resultSet.next()) {
-                    data.add(new PostFull(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3),
-                            resultSet.getString(4), resultSet.getInt(5), resultSet.getInt(6), resultSet.getInt(7),
-                            resultSet.getInt(8), resultSet.getInt(9), resultSet.getBoolean(10), resultSet.getBoolean(11),
-                            resultSet.getBoolean(12), resultSet.getBoolean(13), resultSet.getBoolean(14), resultSet.getString(15)));
+                    data.add(new PostFull<>(resultSet, resultSet.getString("p.forum"), resultSet.getString("p.user"), resultSet.getInt("p.thread")));
                 }
                 return data;
             });
-//            if (!postList.isEmpty()) {
-                Common.addToResponse(response, new BaseResponse<>((byte) 0, postList));
-//            } else {
-//                Common.addNotFound(response);
-//            }
+            Common.addToResponse(response, new BaseResponse<>((byte) 0, postList));
         } catch (WrongDataException e) {
             LOG.error("Can't get list of posts by user!", e);
             Common.addNotCorrect(response);
@@ -379,7 +297,7 @@ public class PostDAOImpl implements PostDAO {
         if (sinceDate != null) {
             try {
                 new SimpleDateFormat("YYYY-MM-DD hh:mm:ss").parse(sinceDate); //only for check valid format
-                query += String.format(" AND date >= \"%s\"", sinceDate);
+                query += String.format(" AND p.date >= \"%s\"", sinceDate);
             } catch (ParseException e) {
                 LOG.error("Can't parse parameter \"since\" : " + sinceDate, e);
                 Common.addNotValid(response);
@@ -390,17 +308,17 @@ public class PostDAOImpl implements PostDAO {
         if (sorting != null) {
             switch (sorting) {
                 case "asc" :
-                    query += " ORDER BY date ASC";
+                    query += " ORDER BY p.date ASC";
                     break;
                 case "desc" :
-                    query += " ORDER BY date DESC";
+                    query += " ORDER BY p.date DESC";
                     break;
                 default :
                     Common.addNotValid(response);
                     return null;
             }
         } else {
-            query += " ORDER BY date DESC";
+            query += " ORDER BY p.date DESC";
         }
         String limit = request.getParameter("limit");
         if (limit != null) {
@@ -425,10 +343,10 @@ public class PostDAOImpl implements PostDAO {
         if (params.containsKey("post")) {
             Connection connection = connectionPool.getConnection();
             try {
-                String query = String.format("UPDATE post SET isDeleted=true WHERE id=%d",
+                String query = String.format("UPDATE Post SET isDeleted=true WHERE id=%d",
                         (Integer) params.get("post"));
                 TExecutor.execUpdate(connection, query);
-                query = String.format("UPDATE thread t SET t.posts=t.posts-1 WHERE t.id=(SELECT p.thread FROM post p WHERE p.id=%d)",
+                query = String.format("UPDATE Thread t SET t.posts=t.posts-1 WHERE t.id=(SELECT p.thread FROM Post p WHERE p.id=%d)",
                         (Integer) params.get("post"));
                 TExecutor.execUpdate(connection, query);
                 Common.addStringToResponse(response,
@@ -495,14 +413,10 @@ public class PostDAOImpl implements PostDAO {
                         Common.escapeInjections((String)params.get("message")),
                         (Integer)params.get("post"));
                 TExecutor.execUpdate(connection, query);
-                query = String.format("SELECT * FROM Post WHERE id=%d",
+                query = String.format("SELECT * FROM Post p WHERE id=%d",
                         (Integer) params.get("post"));
                 PostFull post = TExecutor.execQuery(connection, query, (resultSet) -> resultSet.next() ?
-                        new PostFull(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3),
-                                resultSet.getString(4), resultSet.getInt(5), resultSet.getInt(6), resultSet.getInt(7),
-                                resultSet.getInt(8), resultSet.getInt(9), resultSet.getBoolean(10), resultSet.getBoolean(11),
-                                resultSet.getBoolean(12), resultSet.getBoolean(13), resultSet.getBoolean(14), resultSet.getString(15))
-                        : null);
+                        new PostFull<>(resultSet, resultSet.getString("p.forum"), resultSet.getString("p.user"), resultSet.getInt("p.thread")) : null);
                 if (post != null) {
                     Common.addToResponse(response, new BaseResponse<>((byte) 0, post));
                 } else {
@@ -548,13 +462,9 @@ public class PostDAOImpl implements PostDAO {
                     }
                 }
                 TExecutor.execUpdate(connection, query);
-                query = String.format("SELECT * FROM post WHERE id=%d", (Integer) params.get("post"));
+                query = String.format("SELECT * FROM Post p WHERE p.id=%d", (Integer) params.get("post"));
                 PostFull post = TExecutor.execQuery(connection, query, (resultSet) -> resultSet.next() ?
-                        new PostFull(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3),
-                                resultSet.getString(4), resultSet.getInt(5), resultSet.getInt(6), resultSet.getInt(7),
-                                resultSet.getInt(8), resultSet.getInt(9), resultSet.getBoolean(10), resultSet.getBoolean(11),
-                                resultSet.getBoolean(12), resultSet.getBoolean(13), resultSet.getBoolean(14), resultSet.getString(15))
-                        : null);
+                        new PostFull<>(resultSet, resultSet.getString("p.forum"), resultSet.getString("p.user"), resultSet.getInt("p.thread")) : null);
                 if (post != null) {
                     Common.addToResponse(response, new BaseResponse<>((byte) 0, post));
                 } else {

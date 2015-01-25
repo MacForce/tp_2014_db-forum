@@ -8,25 +8,29 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Properties;
 
 public class ConnectionPool {
     private static final Logger LOG = LoggerFactory.getLogger(ConnectionPool.class);
+    private final Properties properties;
     private BasicDataSource connectionPool;
 
-    public ConnectionPool() {
+    public ConnectionPool(Properties properties) {
+        this.properties = properties;
         connectionPool = new BasicDataSource();
         connectionPool.setDriverClassName("com.mysql.jdbc.Driver");
-        connectionPool.setUrl("jdbc:mysql://127.0.0.1:3306/forum_db?useUnicode=true&characterEncoding=UTF-8");
-        connectionPool.setUsername("root");
-        connectionPool.setPassword("root");
-        connectionPool.setInitialSize(15);
+//        connectionPool.setUrl("jdbc:mysql://127.0.0.1:3306/forum_db?useUnicode=true&characterEncoding=UTF-8");
+        connectionPool.setUrl(properties.getProperty("databaseUrl"));
+        connectionPool.setUsername(properties.getProperty("dbLogin"));
+        connectionPool.setPassword(properties.getProperty("dbPass"));
+        connectionPool.setInitialSize(Integer.valueOf(properties.getProperty("initDBPoolSize")));
         connectionPool.setDefaultAutoCommit(true);
-        connectionPool.setMaxIdle(25);
+        connectionPool.setMaxIdle(Integer.valueOf(properties.getProperty("maxIdleDBPool")));
 //        connectionPool.setPoolPreparedStatements(true);
 //        connectionPool.setMaxOpenPreparedStatements(10);
-        connectionPool.setMaxTotal(50);
-        connectionPool.setMaxWaitMillis(10_000);
-        connectionPool.setDefaultQueryTimeout(1000);
+        connectionPool.setMaxTotal(Integer.valueOf(properties.getProperty("maxTotalDBPool")));
+        connectionPool.setMaxWaitMillis(Integer.valueOf(properties.getProperty("maxWaitMillisDBPool")));
+        connectionPool.setDefaultQueryTimeout(Integer.valueOf(properties.getProperty("defaultQueryDBPool")));
     }
 
     public boolean testDBConnect() {

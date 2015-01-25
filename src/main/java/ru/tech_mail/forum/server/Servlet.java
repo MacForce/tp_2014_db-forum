@@ -4,6 +4,7 @@ import org.eclipse.jetty.server.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.tech_mail.forum.DAO.*;
+import ru.tech_mail.forum.DAO.JdbcDAO.Common;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -76,14 +77,17 @@ public class Servlet extends HttpServlet {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     LOG.debug("BAD REQUEST at Post-request!\n" + request.getRequestURI());
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            LOG.error("Epic exception!!!");
+            Common.addOK(response);
+        }
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
             switch (request.getRequestURI()) {
-                case "db/api/shutdown_server":
+                case "/shutdown_server":
                     try {
                         server.stop();
                     } catch (Exception e) {
@@ -154,6 +158,9 @@ public class Servlet extends HttpServlet {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     LOG.debug("BAD REQUEST at Post-request!\n" + request.getRequestURI());
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            LOG.error("Epic exception!!!");
+            Common.addOK(response);
+        }
     }
 }

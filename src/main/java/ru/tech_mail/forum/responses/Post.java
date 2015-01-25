@@ -3,8 +3,11 @@ package ru.tech_mail.forum.responses;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Post {
+public class Post<forum, thread, user> {
     private String date;
     private int id;
     @JsonProperty(value = "isApproved")
@@ -19,21 +22,26 @@ public class Post {
     private boolean isSpam;
     private String message;
     private Integer parent; // it can be null
-    private String forum;
-    private int thread;
-    private String user;
+    private forum forum;
+    private thread thread;
+    private user user;
 
-    /*
-    Не забудь, что нету полей likes, dislikes, points !!! В ResultSet они будут, поэтому их нужно пропустить!!!
-     */
-    public Post(int id, String message, String forumShortName, String userEmail, Integer parent,
-                Integer threadId, boolean isDeleted, boolean isSpam, boolean isEdited, boolean isApproved,
+    public Post(int id, String message, forum forumShortName, user userEmail, Integer parent,
+                thread threadId, boolean isDeleted, boolean isSpam, boolean isEdited, boolean isApproved,
                 boolean isHighlighted, String date) {
         this.id = id;
         this.message = message;
         this.forum = forumShortName;
         this.user = userEmail;
-        this.parent = (parent != null && parent == 0) ? null : parent;
+        if (parent != null) {
+            if (parent == 0) {
+                this.parent = null;
+            } else {
+                this.parent = parent;
+            }
+        } else {
+            this.parent = parent;
+        }
         this.thread = threadId;
         this.isDeleted = isDeleted;
         this.isSpam = isSpam;
@@ -42,6 +50,25 @@ public class Post {
         this.isHighlighted = isHighlighted;
         this.date = date.lastIndexOf('.') != -1 ? date.substring(0,date.lastIndexOf('.')) : date;
     }
+
+    public Post(ResultSet resultSet, forum forum, user user, thread thread) throws SQLException {
+        this.id = resultSet.getInt("p.id");
+        this.message = resultSet.getString("p.message");
+        this.forum = forum;
+        this.user = user;
+        this.thread = thread;
+        this.parent = (resultSet.getInt("p.parent") == 0) ? null : resultSet.getInt("p.parent");
+        this.isDeleted = resultSet.getBoolean("p.isDeleted");
+        this.isSpam = resultSet.getBoolean("p.isSpam");
+        this.isEdited = resultSet.getBoolean("p.isEdited");
+        this.isApproved = resultSet.getBoolean("p.isApproved");
+        this.isHighlighted = resultSet.getBoolean("p.isHighlighted");
+        String postDate = resultSet.getString("p.date");
+        this.date = postDate.lastIndexOf('.') != -1 ?
+                postDate.substring(0, postDate.lastIndexOf('.')) : postDate;
+    }
+
+    public Post() {}
 
     public String getDate() {
         return date;
@@ -79,16 +106,27 @@ public class Post {
         return parent;
     }
 
-    public String getForum() {
+    public forum getForum() {
         return forum;
     }
 
-    public int getThread() {
+    public thread getThread() {
         return thread;
     }
 
-    public String getUser() {
+    public user getUser() {
         return user;
     }
 
+    public void setForum(forum forum) {
+        this.forum = forum;
+    }
+
+    public void setThread(thread thread) {
+        this.thread = thread;
+    }
+
+    public void setUser(user user) {
+        this.user = user;
+    }
 }
