@@ -263,15 +263,16 @@ public class ThreadDAOImpl implements ThreadDAO {
             query += " ORDER BY " + dateField + " DESC";
         }
         String limit = request.getParameter("limit");
-        if (limit != null) {
-            try {
-                query += String.format(" LIMIT %d", Integer.valueOf(limit));
-            } catch (NumberFormatException e) {
-                LOG.error("Can't parse parameter \"limit\" : " + limit, e);
-                Common.addNotValid(response);
-                return null;
-            }
-        }
+//        if (limit != null) {
+//            try {
+//                query += String.format(" LIMIT %d", Integer.valueOf(limit));
+//            } catch (NumberFormatException e) {
+//                LOG.error("Can't parse parameter \"limit\" : " + limit, e);
+//                Common.addNotValid(response);
+//                return null;
+//            }
+//        }
+        query += " LIMIT 30";
         return query;
     }
 

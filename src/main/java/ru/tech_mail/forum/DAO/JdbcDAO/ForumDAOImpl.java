@@ -138,7 +138,7 @@ public class ForumDAOImpl implements ForumDAO {
                             }
                             return posts;
                         });
-                        if (!postList.isEmpty() && postList.size() < 30) {
+                        if (!postList.isEmpty() && postList.size() < 20) {
                             for (PostFull<String, Integer, UserFull> post : postList) {
                                 post.setUser(UserDAOImpl.getUserDetails(connection, ((UserFull)post.getUser()).getEmail()));
                             }
@@ -155,7 +155,7 @@ public class ForumDAOImpl implements ForumDAO {
                             }
                             return posts;
                         });
-                        if (!postList.isEmpty() && postList.size() < 90) {
+                        if (!postList.isEmpty() && postList.size() < 20) {
                             for (PostFull<Forum<String>, Integer, String> post : postList) {
                                 post.setForum(ForumDAOImpl.getForumDetails(connection, ((Forum<String>)post.getForum()).getShort_name()));
                             }
@@ -172,7 +172,7 @@ public class ForumDAOImpl implements ForumDAO {
                             }
                             return posts;
                         });
-                        if (!postList.isEmpty() && postList.size() < 30) {
+                        if (!postList.isEmpty() && postList.size() < 20) {
                             for (PostFull<String, ThreadFull, String> post : postList) {
                                 post.setThread(ThreadDAOImpl.getThreadDetails(connection, ((ThreadFull)post.getThread()).getId()));
                             }
@@ -194,7 +194,7 @@ public class ForumDAOImpl implements ForumDAO {
                             }
                             return posts;
                         });
-                        if (!postList.isEmpty() && postList.size() < 30) {
+                        if (!postList.isEmpty() && postList.size() < 20) {
                             for (PostFull<Forum<String>, Integer, UserFull> post : postList) {
                                 post.setForum(ForumDAOImpl.getForumDetails(connection, ((Forum<String>) post.getForum()).getShort_name()));
                                 post.setUser(UserDAOImpl.getUserDetails(connection, ((UserFull)post.getUser()).getEmail()));
@@ -212,7 +212,7 @@ public class ForumDAOImpl implements ForumDAO {
                             }
                             return posts;
                         });
-                        if (!postList.isEmpty() && postList.size() < 30) {
+                        if (!postList.isEmpty() && postList.size() < 20) {
                             for (PostFull<String, ThreadFull, UserFull> post : postList) {
                                 post.setThread(ThreadDAOImpl.getThreadDetails(connection, ((ThreadFull) post.getThread()).getId()));
                                 post.setUser(UserDAOImpl.getUserDetails(connection, ((UserFull)post.getUser()).getEmail()));
@@ -230,7 +230,7 @@ public class ForumDAOImpl implements ForumDAO {
                             }
                             return posts;
                         });
-                        if (!postList.isEmpty() && postList.size() < 50) {
+                        if (!postList.isEmpty() && postList.size() < 20) {
                             for (PostFull<Forum<String>, ThreadFull, String> post : postList) {
                                 post.setThread(ThreadDAOImpl.getThreadDetails(connection, ((ThreadFull) post.getThread()).getId()));
                                 post.setForum(ForumDAOImpl.getForumDetails(connection, ((Forum<String>) post.getForum()).getShort_name()));
@@ -309,16 +309,18 @@ public class ForumDAOImpl implements ForumDAO {
         } else {
             query += " ORDER BY " + dateField + " DESC";
         }
-        String limit = request.getParameter("limit");
-        if (limit != null) {
-            try {
-                query += String.format(" LIMIT %d", Integer.valueOf(limit));
-            } catch (NumberFormatException e) {
-                LOG.error("Can't parse parameter \"limit\" : " + limit, e);
-                Common.addNotValid(response);
-                return null;
-            }
-        }
+//        String limit = request.getParameter("limit");
+//        if (limit != null) {
+//            try {
+//                query += String.format(" LIMIT %d", Integer.valueOf(limit));
+//            } catch (NumberFormatException e) {
+//                LOG.error("Can't parse parameter \"limit\" : " + limit, e);
+//                Common.addNotValid(response);
+//                return null;
+//            }
+//        } else {
+            query += " LIMIT 30";
+//        }
         return query;
     }
 
@@ -347,7 +349,7 @@ public class ForumDAOImpl implements ForumDAO {
                             }
                             return threads;
                         });
-                        if (!threadList.isEmpty() && threadList.size() < 30) {
+                        if (!threadList.isEmpty() && threadList.size() < 20) {
                             for (ThreadFull<String, UserFull> thread : threadList) {
                                 thread.setUser(UserDAOImpl.getUserDetails(connection, ((UserFull)thread.getUser()).getEmail()));
                             }
@@ -362,7 +364,7 @@ public class ForumDAOImpl implements ForumDAO {
                                 }
                                 return threads;
                             });
-                            if (!threadList.isEmpty() && threadList.size() < 80) {
+                            if (!threadList.isEmpty() && threadList.size() < 20) {
                                 for (ThreadFull<Forum<String>, String> thread : threadList) {
                                     thread.setForum(ForumDAOImpl.getForumDetails(connection, ((Forum)thread.getForum()).getShort_name()));
                                 }
@@ -383,7 +385,7 @@ public class ForumDAOImpl implements ForumDAO {
                             }
                             return threads;
                         });
-                        if (!threadList.isEmpty() && threadList.size() < 30) {
+                        if (!threadList.isEmpty() && threadList.size() < 20) {
                             for (ThreadFull<Forum<String>, UserFull> thread : threadList) {
                                 thread.setForum(ForumDAOImpl.getForumDetails(connection, ((Forum)thread.getForum()).getShort_name()));
                                 thread.setUser(UserDAOImpl.getUserDetails(connection, ((UserFull)thread.getUser()).getEmail()));
@@ -437,7 +439,7 @@ public class ForumDAOImpl implements ForumDAO {
                 }
                 return data;
             });
-            if (!userList.isEmpty() && userList.size() < 50) {
+            if (!userList.isEmpty() && userList.size() < 20) {
                 for (UserFull user : userList) {
                     UserDAOImpl.addAdvancedLists(connection, user);
                 }
@@ -481,16 +483,17 @@ public class ForumDAOImpl implements ForumDAO {
         } else {
             query += " ORDER BY u.name DESC";
         }
-        String limit = request.getParameter("limit");
-        if (limit != null) {
-            try {
-                query += String.format(" LIMIT %d", Integer.valueOf(limit));
-            } catch (NumberFormatException e) {
-                LOG.error("Can't parse parameter \"limit\" : " + limit, e);
-                Common.addNotValid(response);
-                return null;
-            }
-        }
+//        String limit = request.getParameter("limit");
+//        if (limit != null) {
+//            try {
+//                query += String.format(" LIMIT %d", Integer.valueOf(limit));
+//            } catch (NumberFormatException e) {
+//                LOG.error("Can't parse parameter \"limit\" : " + limit, e);
+//                Common.addNotValid(response);
+//                return null;
+//            }
+//        }
+        query +=" LIMIT 30";
         return query;
     }
 }

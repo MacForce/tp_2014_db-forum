@@ -320,16 +320,17 @@ public class PostDAOImpl implements PostDAO {
         } else {
             query += " ORDER BY p.date DESC";
         }
-        String limit = request.getParameter("limit");
-        if (limit != null) {
-            try {
-                query += String.format(" LIMIT %d", Integer.valueOf(limit));
-            } catch (NumberFormatException e) {
-                LOG.error("Can't parse parameter \"limit\" : " + limit, e);
-                Common.addNotValid(response);
-                return null;
-            }
-        }
+//        String limit = request.getParameter("limit");
+//        if (limit != null) {
+//            try {
+//                query += String.format(" LIMIT %d", Integer.valueOf(limit));
+//            } catch (NumberFormatException e) {
+//                LOG.error("Can't parse parameter \"limit\" : " + limit, e);
+//                Common.addNotValid(response);
+//                return null;
+//            }
+//        } else {
+        query += " LIMIT 30";
         return query;
     }
 

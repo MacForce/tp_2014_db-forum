@@ -277,16 +277,17 @@ public class UserDAOImpl implements UserDAO {
         } else {
             query += " ORDER BY u.name DESC";
         }
-        String limit = request.getParameter("limit");
-        if (limit != null) {
-            try {
-                query += String.format(" LIMIT %d", Integer.valueOf(limit));
-            } catch (NumberFormatException e) {
-                LOG.error("Can't parse parameter \"limit\" : " + limit, e);
-                Common.addNotValid(response);
-                return null;
-            }
-        }
+//        String limit = request.getParameter("limit");
+//        if (limit != null) {
+//            try {
+//                query += String.format(" LIMIT %d", Integer.valueOf(limit));
+//            } catch (NumberFormatException e) {
+//                LOG.error("Can't parse parameter \"limit\" : " + limit, e);
+//                Common.addNotValid(response);
+//                return null;
+//            }
+//        }
+        query += " LIMIT 30";
         return query;
     }
 
@@ -349,16 +350,17 @@ public class UserDAOImpl implements UserDAO {
         } else {
             query += " ORDER BY p.date DESC";
         }
-        String limit = request.getParameter("limit");
-        if (limit != null) {
-            try {
-                query += String.format(" LIMIT %d", Integer.valueOf(limit));
-            } catch (NumberFormatException e) {
-                LOG.error("Can't parse parameter \"limit\" : " + limit, e);
-                Common.addNotValid(response);
-                return null;
-            }
-        }
+//        String limit = request.getParameter("limit");
+//        if (limit != null) {
+//            try {
+//                query += String.format(" LIMIT %d", Integer.valueOf(limit));
+//            } catch (NumberFormatException e) {
+//                LOG.error("Can't parse parameter \"limit\" : " + limit, e);
+//                Common.addNotValid(response);
+//                return null;
+//            }
+//        }
+        query += " LIMIT 30";
         return query;
     }
 
